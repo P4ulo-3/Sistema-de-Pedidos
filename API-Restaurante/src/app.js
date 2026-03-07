@@ -10,7 +10,13 @@ import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://sistema-de-pedidos-1.vercel.app",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  }),
+);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use("/uploads", express.static("src/uploads"));
