@@ -33,7 +33,12 @@ export default function ProductForm() {
             price: String(product.price),
             categoryId: product.categoryId ?? "",
           });
-          if (product.imageUrl) setImagePreview(`/api${product.imageUrl}`);
+          if (product.imageUrl)
+            setImagePreview(
+              product.imageUrl?.startsWith("http")
+                ? product.imageUrl
+                : `/api${product.imageUrl}`,
+            );
         }
       } catch {
         toast.error("Erro ao carregar produto");

@@ -147,7 +147,11 @@ export default function OrderEdit() {
                 <div className="w-full h-24 rounded-md overflow-hidden bg-surface-700 mb-3 flex items-center justify-center">
                   {product.imageUrl ? (
                     <img
-                      src={`/api${product.imageUrl}`}
+                      src={
+                        product.imageUrl?.startsWith("http")
+                          ? product.imageUrl
+                          : `/api${product.imageUrl}`
+                      }
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />

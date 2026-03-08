@@ -130,7 +130,11 @@ export default function OrderNew() {
                   >
                     {product.imageUrl ? (
                       <img
-                        src={`/api${product.imageUrl}`}
+                        src={
+                          product.imageUrl?.startsWith("http")
+                            ? product.imageUrl
+                            : `/api${product.imageUrl}`
+                        }
                         alt={product.name}
                         className="w-full h-full object-cover"
                       />
