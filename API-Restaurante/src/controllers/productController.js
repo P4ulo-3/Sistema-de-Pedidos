@@ -1,4 +1,5 @@
 import prisma from "../db.js";
+import cloudinary from "../services/cloudinary.js";
 
 function parsePrice(price) {
   const parsed = Number(price);
@@ -46,7 +47,14 @@ async function createProduct(req, res, next) {
       return res.status(400).json({ message: "name e price são obrigatórios" });
     }
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    let imageUrl = null;
+    if (req.file) {
+      const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+      const uploaded = await cloudinary.uploader.upload(dataUri, {
+        folder: "products",
+      });
+      imageUrl = uploaded.secure_url;
+    }
 
     const product = await prisma.product.create({
       data: {
@@ -79,9 +87,13 @@ async function updateProduct(req, res, next) {
     if (description !== undefined) updateData.description = description;
     if (categoryId !== undefined) updateData.categoryId = categoryId || null;
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
-    // if a new file was uploaded via multipart, override imageUrl
+    // if a new file was uploaded via multipart, upload to Cloudinary and override imageUrl
     if (req.file) {
-      updateData.imageUrl = `/uploads/${req.file.filename}`;
+      const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+      const uploaded = await cloudinary.uploader.upload(dataUri, {
+        folder: "products",
+      });
+      updateData.imageUrl = uploaded.secure_url;
     }
     if (price !== undefined) {
       const parsedPrice = parsePrice(price);

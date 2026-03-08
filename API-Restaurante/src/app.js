@@ -19,7 +19,7 @@ app.use(
 );
 app.use(morgan("dev"));
 app.use(express.json());
-app.use("/uploads", express.static("src/uploads"));
+// uploads served via Cloudinary; local static uploads no longer used
 
 app.get("/health", (req, res) => {
   res.json({ ok: true });

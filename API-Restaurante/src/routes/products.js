@@ -10,14 +10,8 @@ import {
 } from "../controllers/productController.js";
 import { authenticate, authorize } from "../middlewares/authMiddleware.js";
 
-const storage = multer.diskStorage({
-  destination: "src/uploads",
-  filename: (req, file, cb) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${unique}-${file.originalname.replace(/\s+/g, "-")}`);
-  },
-});
-
+// use memory storage and upload to Cloudinary in controllers
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 const router = express.Router();
