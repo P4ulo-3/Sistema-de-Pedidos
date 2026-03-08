@@ -1,5 +1,5 @@
 import prisma from "../db.js";
-import cloudinary from "../services/cloudinary.js";
+import cloudinary, { uploadBuffer } from "../services/cloudinary.js";
 
 function parsePrice(price) {
   const parsed = Number(price);
@@ -49,11 +49,15 @@ async function createProduct(req, res, next) {
 
     let imageUrl = null;
     if (req.file) {
-      const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
-      const uploaded = await cloudinary.uploader.upload(dataUri, {
-        folder: "products",
-      });
-      imageUrl = uploaded.secure_url;
+      try {
+        const uploaded = await uploadBuffer(req.file.buffer, {
+          folder: "products",
+        });
+        imageUrl = uploaded.secure_url;
+      } catch (err) {
+        console.error("Cloudinary upload failed:", err);
+        return res.status(500).json({ message: "Erro ao enviar imagem" });
+      }
     }
 
     const product = await prisma.product.create({
@@ -89,11 +93,15 @@ async function updateProduct(req, res, next) {
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
     // if a new file was uploaded via multipart, upload to Cloudinary and override imageUrl
     if (req.file) {
-      const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
-      const uploaded = await cloudinary.uploader.upload(dataUri, {
-        folder: "products",
-      });
-      updateData.imageUrl = uploaded.secure_url;
+      try {
+        const uploaded = await uploadBuffer(req.file.buffer, {
+          folder: "products",
+        });
+        updateData.imageUrl = uploaded.secure_url;
+      } catch (err) {
+        console.error("Cloudinary upload failed:", err);
+        return res.status(500).json({ message: "Erro ao enviar imagem" });
+      }
     }
     if (price !== undefined) {
       const parsedPrice = parsePrice(price);
