@@ -3,7 +3,7 @@ import api from "../../api/axios.js";
 import LoadingSpinner from "../../components/LoadingSpinner.jsx";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
-// import Modal from "../../components/Modal.jsx"; // Modal removed
+import { Copy } from "lucide-react";
 
 export default function WaiterList() {
   const [waiters, setWaiters] = useState([]);
@@ -53,8 +53,32 @@ export default function WaiterList() {
                 <tr key={w.id} className="border-t border-surface-700">
                   <td className="py-2 px-4">{w.name}</td>
                   <td className="py-2 px-4">{w.email}</td>
-                  <td className="py-2 px-4 font-mono text-xs break-all">
-                    {resetPasswords[w.id] ?? ""}
+                  <td className="py-2 px-4 font-mono text-xs">
+                    {resetPasswords[w.id] ? (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="break-all">
+                          {resetPasswords[w.id]}
+                        </span>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(
+                                resetPasswords[w.id] || "",
+                              );
+                              toast.success("Senha copiada");
+                            } catch {
+                              toast.error("Falha ao copiar");
+                            }
+                          }}
+                          className="p-1 rounded hover:bg-surface-800 text-gray-300"
+                          aria-label="Copiar senha"
+                        >
+                          <Copy size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-500">—</span>
+                    )}
                   </td>
                   <td className="py-2 px-4">{w.role}</td>
                   <td className="py-2 px-4">
