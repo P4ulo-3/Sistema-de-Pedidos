@@ -8,7 +8,24 @@ import { Copy } from "lucide-react";
 export default function WaiterList() {
   const [waiters, setWaiters] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [resetPasswords, setResetPasswords] = useState({});
+  const STORAGE_KEY = "waiter_reset_passwords_v1";
+  const [resetPasswords, setResetPasswords] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // persist reset passwords to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(resetPasswords));
+    } catch {
+      // ignore storage errors
+    }
+  }, [resetPasswords]);
 
   useEffect(() => {
     fetch();
