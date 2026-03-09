@@ -44,10 +44,10 @@ function StatCard({ icon: Icon, label, value, accent = false }) {
         />
       </div>
       <div>
-        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide break-words">
           {label}
         </p>
-        <p className="text-2xl font-bold text-gray-100 mt-0.5">{value}</p>
+        <p className="text-2xl font-bold text-gray-100 mt-0.5 break-words">{value}</p>
       </div>
     </div>
   );
@@ -90,7 +90,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <StatCard
           icon={ClipboardList}
           label="Total de Pedidos"

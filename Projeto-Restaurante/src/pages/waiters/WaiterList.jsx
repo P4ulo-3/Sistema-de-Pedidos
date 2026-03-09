@@ -3,14 +3,12 @@ import api from "../../api/axios.js";
 import LoadingSpinner from "../../components/LoadingSpinner.jsx";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
-import Modal from "../../components/Modal.jsx";
+// import Modal from "../../components/Modal.jsx"; // Modal removed
 
 export default function WaiterList() {
   const [waiters, setWaiters] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalPassword, setModalPassword] = useState("");
-  const [modalUser, setModalUser] = useState(null);
+  const [resetPasswords, setResetPasswords] = useState({});
 
   useEffect(() => {
     fetch();
@@ -43,23 +41,23 @@ export default function WaiterList() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-gray-400">
-                <th className="py-2">Nome</th>
-                <th className="py-2">Email</th>
-                <th className="py-2">Senha (hash)</th>
-                <th className="py-2">Role</th>
-                <th className="py-2">Ações</th>
+                <th className="py-2 px-4">Nome</th>
+                <th className="py-2 px-4">Email</th>
+                <th className="py-2 px-4">Senha</th>
+                <th className="py-2 px-4">Role</th>
+                <th className="py-2 px-4">Ações</th>
               </tr>
             </thead>
             <tbody>
               {waiters.map((w) => (
                 <tr key={w.id} className="border-t border-surface-700">
-                  <td className="py-2">{w.name}</td>
-                  <td className="py-2">{w.email}</td>
-                  <td className="py-2 font-mono text-xs break-all">
-                    {w.password}
+                  <td className="py-2 px-4">{w.name}</td>
+                  <td className="py-2 px-4">{w.email}</td>
+                  <td className="py-2 px-4 font-mono text-xs break-all">
+                    {resetPasswords[w.id] ?? ""}
                   </td>
-                  <td className="py-2">{w.role}</td>
-                  <td className="py-2">
+                  <td className="py-2 px-4">{w.role}</td>
+                  <td className="py-2 px-4">
                     <button
                       onClick={async () => {
                         if (!confirm(`Redefinir senha do usuário ${w.email}?`))
@@ -68,11 +66,10 @@ export default function WaiterList() {
                           const { data } = await api.post(
                             `/users/${w.id}/reset-password`,
                           );
-                          // show modal with generated password
-                          setModalPassword(data.password);
-                          setModalUser(w);
-                          setModalOpen(true);
+                          // store generated password to show in table column
+                          setResetPasswords((p) => ({ ...p, [w.id]: data.password }));
                           fetch();
+                          toast.success("Senha redefinida e exibida na tabela");
                         } catch (err) {
                           toast.error(
                             err?.response?.data?.message ??
@@ -91,43 +88,7 @@ export default function WaiterList() {
           </table>
         </div>
       )}
-      {/* Modal para exibir e copiar a senha gerada */}
-      <Modal
-        title="Senha redefinida"
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        size="sm"
-      >
-        <p className="text-sm text-gray-300 mb-3">
-          Senha para: <strong>{modalUser?.email}</strong>
-        </p>
-        <p className="font-mono bg-surface-700 p-3 rounded text-sm break-all mb-3">
-          {modalPassword}
-        </p>
-        <div className="flex gap-2 justify-end">
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(modalPassword || "");
-                toast.success("Senha copiada");
-              } catch {
-                toast.error("Falha ao copiar");
-              }
-            }}
-            className="btn-primary"
-          >
-            Copiar senha
-          </button>
-          <button
-            type="button"
-            onClick={() => setModalOpen(false)}
-            className="btn-secondary"
-          >
-            Fechar
-          </button>
-        </div>
-      </Modal>
+      {/* Note: generated password appears in the table column 'Senha' after reset */}
     </div>
   );
 }
