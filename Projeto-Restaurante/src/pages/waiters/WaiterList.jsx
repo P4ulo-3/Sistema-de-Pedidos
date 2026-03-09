@@ -35,14 +35,15 @@ export default function WaiterList() {
         </Link>
       </div>
       {loading ? (
-        <LoadingSpinner />
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm table-auto">
       ) : (
         <div className="card overflow-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs text-gray-400">
-                <th className="py-2 px-4">Nome</th>
-                <th className="py-2 px-4">Email</th>
+                        <th className="py-2 px-6 min-w-[200px] whitespace-nowrap">Nome</th>
+                        <th className="py-2 px-6 min-w-[320px] whitespace-nowrap">Email</th>
+                        <th className="py-2 px-6 min-w-[300px] whitespace-nowrap">Senha</th>
+                        <th className="py-2 px-6 min-w-[160px] whitespace-nowrap">Role</th>
+                        <th className="py-2 px-6 min-w-[180px] whitespace-nowrap">Ações</th>
                 <th className="py-2 px-4">Senha</th>
                 <th className="py-2 px-4">Role</th>
                 <th className="py-2 px-4">Ações</th>
@@ -108,6 +109,7 @@ export default function WaiterList() {
                     >
                       Redefinir senha
                     </button>
+                </div>
                   </td>
                 </tr>
               ))}
