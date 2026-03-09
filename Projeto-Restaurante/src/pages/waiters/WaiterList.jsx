@@ -67,7 +67,10 @@ export default function WaiterList() {
                             `/users/${w.id}/reset-password`,
                           );
                           // store generated password to show in table column
-                          setResetPasswords((p) => ({ ...p, [w.id]: data.password }));
+                          setResetPasswords((p) => ({
+                            ...p,
+                            [w.id]: data.password,
+                          }));
                           fetch();
                           toast.success("Senha redefinida e exibida na tabela");
                         } catch (err) {

@@ -47,7 +47,9 @@ function StatCard({ icon: Icon, label, value, accent = false }) {
         <p className="text-xs text-gray-500 font-medium uppercase tracking-wide break-words">
           {label}
         </p>
-        <p className="text-2xl font-bold text-gray-100 mt-0.5 break-words">{value}</p>
+        <p className="text-2xl font-bold text-gray-100 mt-0.5 break-words">
+          {value}
+        </p>
       </div>
     </div>
   );

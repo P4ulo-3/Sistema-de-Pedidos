@@ -1,6 +1,13 @@
 import { useLocation, NavLink } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X, LayoutDashboard, Package, ClipboardList, Pizza } from "lucide-react";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  Package,
+  ClipboardList,
+  Pizza,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import Badge from "./Badge.jsx";
 
@@ -26,10 +33,25 @@ export default function Navbar() {
     )?.[1] ?? "Painel";
 
   const navItems = [
-    { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", roles: ["waiter", "kitchen", "admin"] },
-    { to: "/orders", icon: ClipboardList, label: "Pedidos", roles: ["waiter", "kitchen", "admin"] },
+    {
+      to: "/dashboard",
+      icon: LayoutDashboard,
+      label: "Dashboard",
+      roles: ["waiter", "kitchen", "admin"],
+    },
+    {
+      to: "/orders",
+      icon: ClipboardList,
+      label: "Pedidos",
+      roles: ["waiter", "kitchen", "admin"],
+    },
     { to: "/products", icon: Package, label: "Produtos", roles: ["admin"] },
-    { to: "/waiters", icon: ClipboardList, label: "Atendentes", roles: ["admin"] },
+    {
+      to: "/waiters",
+      icon: ClipboardList,
+      label: "Atendentes",
+      roles: ["admin"],
+    },
   ];
 
   const visible = navItems.filter((item) => item.roles.includes(user?.role));
@@ -66,13 +88,18 @@ export default function Navbar() {
           onClick={() => setOpen(false)}
         />
 
-        <aside className={`absolute left-0 top-0 bottom-0 w-64 bg-surface-950 border-r border-surface-700 transform transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+        <aside
+          className={`absolute left-0 top-0 bottom-0 w-64 bg-surface-950 border-r border-surface-700 transform transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"}`}
+        >
           <div className="flex items-center justify-between px-4 py-4 border-b border-surface-700">
             <div className="flex items-center gap-3">
               <Pizza className="w-6 h-6 text-brand-500" />
               <span className="font-bold text-gray-100">Pizzaria</span>
             </div>
-            <button onClick={() => setOpen(false)} className="p-2 text-gray-300 hover:bg-surface-800 rounded-md">
+            <button
+              onClick={() => setOpen(false)}
+              className="p-2 text-gray-300 hover:bg-surface-800 rounded-md"
+            >
               <X size={18} />
             </button>
           </div>
@@ -83,7 +110,9 @@ export default function Navbar() {
                 key={to}
                 to={to}
                 onClick={() => setOpen(false)}
-                className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 ${isActive ? "bg-brand-500/15 text-brand-400 border border-brand-500/30" : "text-gray-400 hover:bg-surface-800 hover:text-gray-100"}`}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 ${isActive ? "bg-brand-500/15 text-brand-400 border border-brand-500/30" : "text-gray-400 hover:bg-surface-800 hover:text-gray-100"}`
+                }
               >
                 <Icon className="w-4.5 h-4.5 shrink-0" size={18} />
                 <span className="whitespace-nowrap">{label}</span>
