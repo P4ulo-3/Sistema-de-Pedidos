@@ -59,19 +59,44 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/orders");
+      setOrders(res.data);
+      setLastUpdated(new Date());
+    } catch (e) {
+      // ignore for now
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    api
-      .get("/orders")
-      .then((res) => setOrders(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    fetchOrders();
   }, []);
 
-  const pending = orders.filter((o) => o.status === "PENDING").length;
-  const preparing = orders.filter((o) => o.status === "PREPARING").length;
-  const ready = orders.filter((o) => o.status === "READY").length;
-  const total = orders.length;
+  // Filtra apenas pedidos do dia atual
+  const isSameDay = (d1, d2) =>
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
+
+  const today = new Date();
+  const ordersToday = orders.filter((o) => {
+    try {
+      return isSameDay(new Date(o.createdAt), today);
+    } catch (e) {
+      return false;
+    }
+  });
+
+  const pending = ordersToday.filter((o) => o.status === "PENDING").length;
+  const preparing = ordersToday.filter((o) => o.status === "PREPARING").length;
+  const ready = ordersToday.filter((o) => o.status === "READY").length;
+  const total = ordersToday.length;
 
   const recentOrders = [...orders].slice(0, 6);
 
@@ -105,13 +130,23 @@ export default function Dashboard() {
       </div>
 
       {/* Ações rápidas */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 items-center">
         <Link to="/orders/new" className="btn-primary">
           <Plus size={16} /> Novo Pedido
         </Link>
         <Link to="/orders" className="btn-secondary">
           <ClipboardList size={16} /> Ver Pedidos
         </Link>
+        <Link to="/dashboard/history" className="btn-secondary">
+          <ClipboardList size={16} /> Histórico Diário
+        </Link>
+        <button
+          onClick={fetchOrders}
+          className="btn-ghost ml-2"
+          title="Atualizar"
+        >
+          Atualizar
+        </button>
         {user?.role === "admin" && (
           <Link to="/products/new" className="btn-secondary">
             <Package size={16} /> Novo Produto

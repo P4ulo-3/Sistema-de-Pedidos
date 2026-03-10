@@ -11,6 +11,7 @@ import OrderNew from "./pages/orders/OrderNew.jsx";
 import OrderEdit from "./pages/orders/OrderEdit.jsx";
 import WaiterList from "./pages/waiters/WaiterList.jsx";
 import WaiterNew from "./pages/waiters/WaiterNew.jsx";
+import DailyHistory from "./pages/history/DailyHistory.jsx";
 
 export default function App() {
   const { user } = useAuth();
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/orders" element={<OrderList />} />
           <Route path="/orders/new" element={<OrderNew />} />
           <Route path="/orders/:id/edit" element={<OrderEdit />} />
+          <Route path="/dashboard/history" element={<DailyHistory />} />
         </Route>
       </Route>
 
