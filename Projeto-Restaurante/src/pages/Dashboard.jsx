@@ -8,6 +8,7 @@ import {
   ChefHat,
   Plus,
 } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import api from "../api/axios.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
@@ -102,18 +103,34 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-      {/* Saudação */}
-      <div>
-        <h2 className="text-xl font-bold text-gray-100">
-          Olá, {user?.name?.split(" ")[0]} 👋
-        </h2>
-        <p className="text-sm text-gray-500 mt-0.5">
-          {new Date().toLocaleDateString("pt-BR", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-          })}
-        </p>
+      {/* Saudação + Atualizar (ícone) */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-gray-100">
+            Olá, {user?.name?.split(" ")[0]} 👋
+          </h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {new Date().toLocaleDateString("pt-BR", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })}
+          </p>
+        </div>
+        <div className="ml-4">
+          <button
+            onClick={fetchOrders}
+            className="btn-ghost p-2 rounded-md"
+            title="Atualizar"
+          >
+            <RefreshCw
+              size={18}
+              className={
+                loading ? "animate-spin text-gray-300" : "text-gray-300"
+              }
+            />
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -140,13 +157,6 @@ export default function Dashboard() {
         <Link to="/dashboard/history" className="btn-secondary">
           <ClipboardList size={16} /> Histórico Diário
         </Link>
-        <button
-          onClick={fetchOrders}
-          className="btn-ghost ml-2"
-          title="Atualizar"
-        >
-          Atualizar
-        </button>
         {user?.role === "admin" && (
           <Link to="/products/new" className="btn-secondary">
             <Package size={16} /> Novo Produto
