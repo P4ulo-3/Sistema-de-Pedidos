@@ -21,6 +21,12 @@ enum OrderStatus {
   CANCELED
 }
 
+enum TableStatus {
+  FREE
+  OCCUPIED
+  RESERVED
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
@@ -72,6 +78,14 @@ model OrderItem {
   unitPrice Float
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Table {
+  id        String   @id @default(uuid())
+  number    Int      @unique
+  status    TableStatus @default(FREE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

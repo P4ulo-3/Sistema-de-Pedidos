@@ -5,6 +5,7 @@ import morgan from "morgan";
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
 import orderRoutes from "./routes/orders.js";
+import tablesRoutes from "./routes/tables.js";
 import usersRoutes from "./routes/users.js";
 import errorHandler from "./middlewares/errorHandler.js";
 
@@ -29,6 +30,7 @@ app.get("/health", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);
+app.use("/tables", tablesRoutes);
 app.use("/users", usersRoutes);
 
 app.use((req, res) => {

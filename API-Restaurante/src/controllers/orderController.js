@@ -56,6 +56,19 @@ async function createOrder(req, res, next) {
       },
     });
 
+    // mark table as occupied if a table record exists
+    try {
+      const tableNumber = Number(table);
+      if (!Number.isNaN(tableNumber)) {
+        await prisma.table.update({
+          where: { number: tableNumber },
+          data: { status: "OCCUPIED" },
+        });
+      }
+    } catch (e) {
+      // ignore if table record not found - table may not be managed by admin yet
+    }
+
     return res.status(201).json(order);
   } catch (error) {
     return next(error);
@@ -64,7 +77,7 @@ async function createOrder(req, res, next) {
 
 async function listOrders(req, res, next) {
   try {
-    const { status } = req.query;
+    const { status, date } = req.query;
     const where = {};
 
     if (status) {
@@ -72,6 +85,16 @@ async function listOrders(req, res, next) {
         return res.status(400).json({ message: "Status inválido" });
       }
       where.status = status;
+    }
+
+    // date filter expects YYYY-MM-DD
+    if (date) {
+      const start = new Date(date);
+      if (!isNaN(start.getTime())) {
+        const end = new Date(start);
+        end.setDate(start.getDate() + 1);
+        where.createdAt = { gte: start, lt: end };
+      }
     }
 
     if (req.user.role === "waiter") {
@@ -148,6 +171,22 @@ async function updateOrderStatus(req, res, next) {
         waiter: { select: { id: true, name: true, role: true } },
       },
     });
+
+    // if order is finished or canceled, try to free the table
+    try {
+      const tableNumber = Number(updated.table);
+      if (
+        !Number.isNaN(tableNumber) &&
+        (status === "DELIVERED" || status === "CANCELED")
+      ) {
+        await prisma.table.update({
+          where: { number: tableNumber },
+          data: { status: "FREE" },
+        });
+      }
+    } catch (e) {
+      // ignore if table not managed
+    }
 
     return res.json(updated);
   } catch (error) {
