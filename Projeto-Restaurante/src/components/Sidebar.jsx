@@ -8,6 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Pizza,
+  Grid,
+  MapPin,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -24,6 +26,13 @@ const navItems = [
     label: "Pedidos",
     roles: ["waiter", "kitchen", "admin"],
   },
+  {
+    to: "/tables/map",
+    icon: Grid,
+    label: "Mapa de Mesas",
+    roles: ["waiter", "kitchen", "admin"],
+  },
+  { to: "/tables", icon: MapPin, label: "Mesas", roles: ["admin"] },
   { to: "/products", icon: Package, label: "Produtos", roles: ["admin"] },
   {
     to: "/waiters",
