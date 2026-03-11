@@ -127,41 +127,38 @@ export default function OrderNew() {
           {loading ? (
             <LoadingSpinner />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="space-y-2">
               {filtered.map((product) => (
                 <button
                   key={product.id}
                   onClick={() => addToCart(product)}
-                  className="card text-left hover:border-brand-500/50 hover:bg-surface-700
-                             active:scale-95 transition-all duration-100 group"
+                  className="card flex items-center justify-between gap-3 hover:border-brand-500/50 hover:bg-surface-700 active:scale-98 transition-all duration-100 text-left py-2 px-3"
                 >
-                  <div
-                    className="w-full h-24 rounded-md overflow-hidden bg-surface-700 mb-3
-                                  flex items-center justify-center"
-                  >
-                    {product.imageUrl ? (
-                      <img
-                        src={
-                          product.imageUrl?.startsWith("http")
-                            ? product.imageUrl
-                            : `/api${product.imageUrl}`
-                        }
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Plus
-                        size={20}
-                        className="text-surface-500 group-hover:text-brand-400 transition-colors"
-                      />
+                  <div className="flex-1 pr-3 text-left">
+                    <p className="text-sm font-semibold text-gray-100 line-clamp-1">
+                      {product.name}
+                    </p>
+                    {product.description && (
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                        {product.description}
+                      </p>
                     )}
                   </div>
-                  <p className="text-xs font-semibold text-gray-100 line-clamp-1">
-                    {product.name}
-                  </p>
-                  <p className="text-xs text-brand-400 mt-0.5 font-medium">
-                    R$ {product.price.toFixed(2)}
-                  </p>
+
+                  <div className="flex items-center gap-3">
+                    <div className="text-brand-400 font-bold text-sm">R$ {product.price.toFixed(2)}</div>
+                    <div className="w-14 h-10 rounded overflow-hidden bg-surface-700 flex items-center justify-center">
+                      {product.imageUrl ? (
+                        <img
+                          src={product.imageUrl?.startsWith("http") ? product.imageUrl : `/api${product.imageUrl}`}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Plus size={16} className="text-surface-500" />
+                      )}
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>

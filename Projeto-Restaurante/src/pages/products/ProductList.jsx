@@ -90,31 +90,13 @@ export default function ProductList() {
           <p className="text-sm">Nenhum produto encontrado.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="space-y-2">
           {filtered.map((product) => (
             <div
               key={product.id}
-              className="card group flex flex-col gap-3 hover:border-surface-600 transition-colors"
+              className="card flex items-center justify-between gap-3 hover:border-surface-600 transition-colors py-2 px-3"
             >
-              {/* Imagem */}
-              <div className="w-full h-36 rounded-lg overflow-hidden bg-surface-700 flex items-center justify-center">
-                {product.imageUrl ? (
-                  <img
-                    src={
-                      product.imageUrl?.startsWith("http")
-                        ? product.imageUrl
-                        : `/api${product.imageUrl}`
-                    }
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Package size={32} className="text-surface-600" />
-                )}
-              </div>
-
-              {/* Info */}
-              <div className="flex-1">
+              <div className="flex-1 pr-3">
                 <p className="font-semibold text-gray-100 text-sm leading-tight">
                   {product.name}
                 </p>
@@ -130,24 +112,40 @@ export default function ProductList() {
                 )}
               </div>
 
-              {/* Footer */}
-              <div className="flex items-center justify-between pt-2 border-t border-surface-700">
-                <span className="text-brand-400 font-bold text-sm">
-                  R$ {product.price.toFixed(2)}
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <div className="text-brand-400 font-bold text-sm">
+                    R$ {product.price.toFixed(2)}
+                  </div>
+                </div>
+
+                <div className="w-16 h-12 rounded overflow-hidden bg-surface-700 flex items-center justify-center">
+                  {product.imageUrl ? (
+                    <img
+                      src={
+                        product.imageUrl?.startsWith("http")
+                          ? product.imageUrl
+                          : `/api${product.imageUrl}`
+                      }
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Package size={20} className="text-surface-600" />
+                  )}
+                </div>
+
                 {isAdmin && (
                   <div className="flex items-center gap-1">
                     <Link
                       to={`/products/${product.id}/edit`}
-                      className="p-1.5 rounded-lg text-gray-500 hover:text-gray-100
-                                 hover:bg-surface-700 transition-colors"
+                      className="p-1 rounded-lg text-gray-500 hover:text-gray-100 hover:bg-surface-700 transition-colors"
                     >
                       <Pencil size={14} />
                     </Link>
                     <button
                       onClick={() => setDeleteModal({ open: true, product })}
-                      className="p-1.5 rounded-lg text-gray-500 hover:text-red-400
-                                 hover:bg-red-500/10 transition-colors"
+                      className="p-1 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                     >
                       <Trash2 size={14} />
                     </button>
