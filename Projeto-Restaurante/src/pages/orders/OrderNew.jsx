@@ -146,11 +146,17 @@ export default function OrderNew() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="text-brand-400 font-bold text-sm">R$ {product.price.toFixed(2)}</div>
+                    <div className="text-brand-400 font-bold text-sm">
+                      R$ {product.price.toFixed(2)}
+                    </div>
                     <div className="w-14 h-10 rounded overflow-hidden bg-surface-700 flex items-center justify-center">
                       {product.imageUrl ? (
                         <img
-                          src={product.imageUrl?.startsWith("http") ? product.imageUrl : `/api${product.imageUrl}`}
+                          src={
+                            product.imageUrl?.startsWith("http")
+                              ? product.imageUrl
+                              : `/api${product.imageUrl}`
+                          }
                           alt={product.name}
                           className="w-full h-full object-cover"
                         />
