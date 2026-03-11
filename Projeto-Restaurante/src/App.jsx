@@ -12,6 +12,8 @@ import OrderEdit from "./pages/orders/OrderEdit.jsx";
 import WaiterList from "./pages/waiters/WaiterList.jsx";
 import WaiterNew from "./pages/waiters/WaiterNew.jsx";
 import DailyHistory from "./pages/history/DailyHistory.jsx";
+import TablesAdmin from "./pages/TablesAdmin.jsx";
+import TablesMap from "./pages/TablesMap.jsx";
 
 export default function App() {
   const { user } = useAuth();
@@ -42,6 +44,8 @@ export default function App() {
           <Route path="/orders" element={<OrderList />} />
           <Route path="/orders/new" element={<OrderNew />} />
           <Route path="/orders/:id/edit" element={<OrderEdit />} />
+          <Route path="/tables" element={<TablesAdmin />} />
+          <Route path="/tables/map" element={<TablesMap />} />
           <Route path="/dashboard/history" element={<DailyHistory />} />
         </Route>
       </Route>

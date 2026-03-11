@@ -12,6 +12,7 @@ export default function OrderNew() {
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState([]); // [{ product, quantity }]
   const [table, setTable] = useState("");
+  const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,6 +25,16 @@ export default function OrderNew() {
       })
       .catch(() => toast.error("Erro ao carregar produtos"))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    // fetch tables for selection
+    api
+      .get("/tables")
+      .then((res) => setTables(res.data))
+      .catch(() => {
+        // ignore, selection will fallback to manual input
+      });
   }, []);
 
   useEffect(() => {
@@ -58,7 +69,7 @@ export default function OrderNew() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!table.trim()) {
+    if (!table || (typeof table === "string" && !table.trim())) {
       toast.error("Informe o número da mesa");
       return;
     }
@@ -70,7 +81,7 @@ export default function OrderNew() {
     try {
       setSubmitting(true);
       await api.post("/orders", {
-        table: table.trim(),
+        table: String(table).trim(),
         items: cart.map((c) => ({
           productId: c.product.id,
           quantity: c.quantity,
@@ -167,13 +178,30 @@ export default function OrderNew() {
             {/* Mesa */}
             <div>
               <label className="label">Mesa *</label>
-              <input
-                placeholder="Ex: 05"
-                value={table}
-                onChange={(e) => setTable(e.target.value)}
-                className="input"
-                disabled={submitting}
-              />
+              {tables && tables.length > 0 ? (
+                <select
+                  value={table}
+                  onChange={(e) => setTable(e.target.value)}
+                  className="input"
+                  disabled={submitting}
+                >
+                  <option value="">Selecione a mesa</option>
+                  {tables.map((t) => (
+                    <option key={t.id} value={t.number}>
+                      Mesa {t.number}{" "}
+                      {t.status !== "FREE" ? `(${t.status})` : ""}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  placeholder="Ex: 05"
+                  value={table}
+                  onChange={(e) => setTable(e.target.value)}
+                  className="input"
+                  disabled={submitting}
+                />
+              )}
             </div>
 
             {/* Itens no carrinho */}
