@@ -12,8 +12,9 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://sistema-de-pedidos-1.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin:
+      process.env.FRONTEND_URL || "https://sistema-de-pedidos-1.vercel.app",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   }),
 );
