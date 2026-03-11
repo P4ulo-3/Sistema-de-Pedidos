@@ -5,7 +5,10 @@ async function listTables(req, res, next) {
     if (!prisma.table || typeof prisma.table.findMany !== "function") {
       return res
         .status(501)
-        .json({ message: "Table model not available in Prisma Client. Regenerate client and redeploy." });
+        .json({
+          message:
+            "Table model not available in Prisma Client. Regenerate client and redeploy.",
+        });
     }
 
     const tables = await prisma.table.findMany({ orderBy: { number: "asc" } });
@@ -20,7 +23,10 @@ async function createTable(req, res, next) {
     if (!prisma.table || typeof prisma.table.create !== "function") {
       return res
         .status(501)
-        .json({ message: "Table model not available in Prisma Client. Regenerate client and redeploy." });
+        .json({
+          message:
+            "Table model not available in Prisma Client. Regenerate client and redeploy.",
+        });
     }
     const { number } = req.body;
     if (number == null || Number.isNaN(Number(number))) {
@@ -40,7 +46,10 @@ async function updateTable(req, res, next) {
     if (!prisma.table || typeof prisma.table.update !== "function") {
       return res
         .status(501)
-        .json({ message: "Table model not available in Prisma Client. Regenerate client and redeploy." });
+        .json({
+          message:
+            "Table model not available in Prisma Client. Regenerate client and redeploy.",
+        });
     }
     const { id } = req.params;
     const { status, number } = req.body;
@@ -61,7 +70,10 @@ async function deleteTable(req, res, next) {
     if (!prisma.table || typeof prisma.table.delete !== "function") {
       return res
         .status(501)
-        .json({ message: "Table model not available in Prisma Client. Regenerate client and redeploy." });
+        .json({
+          message:
+            "Table model not available in Prisma Client. Regenerate client and redeploy.",
+        });
     }
     const { id } = req.params;
     await prisma.table.delete({ where: { id } });
