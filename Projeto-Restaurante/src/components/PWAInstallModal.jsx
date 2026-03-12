@@ -6,6 +6,7 @@ export default function PWAInstallModal() {
   const [open, setOpen] = useState(false);
   const [supported, setSupported] = useState(false);
   const [isIos, setIsIos] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -47,10 +48,39 @@ export default function PWAInstallModal() {
       const url = new URL(window.location.href);
       const force = url.searchParams.get("showPwa") === "1";
       const isLocal = /^(localhost|127\.|0\.)/.test(window.location.hostname);
-      if ((force || isLocal) && !localStorage.getItem("pwa_installed_v1")) {
+      const isDev =
+        typeof import.meta !== "undefined" &&
+        import.meta.env &&
+        import.meta.env.MODE === "development";
+      if (
+        (force || isLocal || isDev) &&
+        !localStorage.getItem("pwa_installed_v1")
+      ) {
         setSupported(true);
         setOpen(true);
       }
+
+      // In production environments, if manifest or a service worker exists,
+      // show the install modal so users on Vercel can see it.
+      (async () => {
+        try {
+          const hasManifest = !!document.querySelector('link[rel="manifest"]');
+          const swReg = await navigator.serviceWorker.getRegistration();
+          const swPresent = !!swReg;
+          const hostOk = !isLocal; // production-like host
+          if (
+            hostOk &&
+            (hasManifest || swPresent) &&
+            !localStorage.getItem("pwa_installed_v1") &&
+            !dismissed
+          ) {
+            setSupported(true);
+            setOpen(true);
+          }
+        } catch (err) {
+          // ignore
+        }
+      })();
     } catch (err) {
       // ignore
     }
