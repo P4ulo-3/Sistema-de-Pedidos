@@ -68,10 +68,24 @@ export default function TablesMap() {
             </div>
 
             <div className="p-4 bg-transparent text-sm text-white/90">
-              {ordersForTable(t.number).length === 0 ? (
-                <p className="text-gray-200">Livre</p>
-              ) : (
-                ordersForTable(t.number).map((o) => (
+              {(() => {
+                const tableOrders = ordersForTable(t.number);
+                if (tableOrders.length === 0) {
+                  if (t.status === "FREE") {
+                    return <p className="text-gray-200">Livre</p>;
+                  }
+
+                  // mostrar estado quando não há pedidos
+                  return (
+                    <div className="p-2 rounded bg-black/10">
+                      <p className="text-sm">
+                        {t.status === "RESERVED" ? "Reservado" : "Ocupado"}
+                      </p>
+                    </div>
+                  );
+                }
+
+                return tableOrders.map((o) => (
                   <div key={o.id} className="mt-2 p-2 bg-black/20 rounded">
                     <div className="flex justify-between">
                       <div>
@@ -98,8 +112,8 @@ export default function TablesMap() {
                       ))}
                     </ul>
                   </div>
-                ))
-              )}
+                ));
+              })()}
             </div>
           </div>
         ))}
