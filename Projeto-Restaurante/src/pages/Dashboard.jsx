@@ -82,9 +82,11 @@ export default function Dashboard() {
     // Re-fetch quando o dia mudar (verifica a cada minuto)
     const checkInterval = setInterval(() => {
       const today = new Date().toISOString().slice(0, 10);
-      if (today !== window.__orders_today) {
-        window.__orders_today = today;
-        fetchOrders();
+      if (typeof window !== "undefined") {
+        if (today !== window.__orders_today) {
+          window.__orders_today = today;
+          fetchOrders();
+        }
       }
     }, 60 * 1000);
 

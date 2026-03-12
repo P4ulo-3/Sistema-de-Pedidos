@@ -47,9 +47,11 @@ export default function OrderList() {
     // Re-fetch quando o dia mudar (verifica a cada minuto)
     const checkInterval = setInterval(() => {
       const today = new Date().toISOString().slice(0, 10);
-      if (today !== window.__orders_today) {
-        window.__orders_today = today;
-        fetchOrders();
+      if (typeof window !== "undefined") {
+        if (today !== window.__orders_today) {
+          window.__orders_today = today;
+          fetchOrders();
+        }
       }
     }, 60 * 1000);
 
@@ -60,8 +62,10 @@ export default function OrderList() {
     try {
       setLoading(true);
       const today = new Date().toISOString().slice(0, 10);
-      // persist current day to window to allow cross-component detection
-      window.__orders_today = window.__orders_today || today;
+      // persist current day to window to allow cross-component detection (guarded)
+      if (typeof window !== "undefined") {
+        window.__orders_today = window.__orders_today || today;
+      }
 
       const params = { date: today };
       if (statusFilter) params.status = statusFilter;
