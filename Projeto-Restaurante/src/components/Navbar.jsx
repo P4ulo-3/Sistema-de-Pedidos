@@ -7,6 +7,8 @@ import {
   LayoutDashboard,
   Package,
   ClipboardList,
+  Grid,
+  MapPin,
   Pizza,
   LogOut,
 } from "lucide-react";
@@ -18,6 +20,8 @@ const titles = {
   "/orders": "Pedidos",
   "/orders/new": "Novo Pedido",
   "/products": "Produtos",
+  "/tables": "Mesas",
+  "/tables/map": "Mapa de Mesas",
   "/products/new": "Novo Produto",
 };
 
@@ -49,6 +53,13 @@ export default function Navbar() {
       label: "Pedidos",
       roles: ["waiter", "kitchen", "admin"],
     },
+    {
+      to: "/tables/map",
+      icon: Grid,
+      label: "Mapa de Mesas",
+      roles: ["waiter", "kitchen", "admin"],
+    },
+    { to: "/tables", icon: MapPin, label: "Mesas", roles: ["admin"] },
     { to: "/products", icon: Package, label: "Produtos", roles: ["admin"] },
     {
       to: "/waiters",

@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import api from "../api/axios.js";
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
 
-function statusColor(s) {
+function statusBorder(s) {
+  if (s === "FREE") return "border-green-600";
+  if (s === "OCCUPIED") return "border-red-600";
+  if (s === "RESERVED") return "border-yellow-500";
+  return "border-gray-600";
+}
+
+function statusTitleBg(s) {
   if (s === "FREE") return "bg-green-600";
   if (s === "OCCUPIED") return "bg-red-600";
   if (s === "RESERVED") return "bg-yellow-500";
@@ -47,14 +54,22 @@ export default function TablesMap() {
       <h1 className="text-xl font-bold">Mapa de Mesas</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {tables.map((t) => (
-          <div key={t.id} className={`card p-4 ${statusColor(t.status)}`}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold">Mesa {t.number}</h3>
-              <span className="text-sm text-white/80">{t.status}</span>
+          <div
+            key={t.id}
+            className={`card p-0 border ${statusBorder(t.status)} rounded`}
+          >
+            <div className={`${statusTitleBg(t.status)} px-4 py-3 rounded-t`}>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">
+                  Mesa {t.number}
+                </h3>
+                <span className="text-sm text-white/80">{t.status}</span>
+              </div>
             </div>
-            <div className="mt-2 text-sm text-white/90">
+
+            <div className="p-4 bg-transparent text-sm text-white/90">
               {ordersForTable(t.number).length === 0 ? (
-                <p>Livre</p>
+                <p className="text-gray-200">Livre</p>
               ) : (
                 ordersForTable(t.number).map((o) => (
                   <div key={o.id} className="mt-2 p-2 bg-black/20 rounded">

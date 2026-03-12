@@ -71,28 +71,53 @@ export default function TablesAdmin() {
         <p>Carregando...</p>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {tables.map((t) => (
-            <div key={t.id} className="card flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <strong>Mesa {t.number}</strong>
-                <span className="text-xs text-gray-400">{t.status}</span>
+          {tables.map((t) => {
+            const borderClass =
+              t.status === "FREE"
+                ? "border-green-600"
+                : t.status === "OCCUPIED"
+                  ? "border-red-600"
+                  : t.status === "RESERVED"
+                    ? "border-yellow-500"
+                    : "border-gray-600";
+
+            const titleBg =
+              t.status === "FREE"
+                ? "bg-green-600"
+                : t.status === "OCCUPIED"
+                  ? "bg-red-600"
+                  : t.status === "RESERVED"
+                    ? "bg-yellow-500"
+                    : "bg-gray-600";
+
+            return (
+              <div
+                key={t.id}
+                className={`card p-0 border ${borderClass} rounded`}
+              >
+                <div className={`${titleBg} px-3 py-2 rounded-t`}>
+                  <div className="flex items-center justify-between">
+                    <strong className="text-white">Mesa {t.number}</strong>
+                    <span className="text-xs text-white/90">{t.status}</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-transparent flex gap-2">
+                  <button
+                    onClick={() => toggleStatus(t)}
+                    className="btn-secondary flex-1 text-xs"
+                  >
+                    Toggle Reserva
+                  </button>
+                  <button
+                    onClick={() => handleDelete(t.id)}
+                    className="btn-danger flex-1 text-xs"
+                  >
+                    Remover
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => toggleStatus(t)}
-                  className="btn-secondary flex-1 text-xs"
-                >
-                  Toggle Reserva
-                </button>
-                <button
-                  onClick={() => handleDelete(t.id)}
-                  className="btn-danger flex-1 text-xs"
-                >
-                  Remover
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
