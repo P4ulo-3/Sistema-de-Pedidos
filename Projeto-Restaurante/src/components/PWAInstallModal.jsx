@@ -147,7 +147,7 @@ export default function PWAInstallModal() {
         <div className="mt-4 flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="px-3 py-1 rounded-md bg-gray-200 text-sm"
+            className="px-3 py-1 rounded-md bg-gray-800 text-sm"
           >
             Depois
           </button>
