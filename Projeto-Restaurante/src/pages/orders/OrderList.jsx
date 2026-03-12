@@ -114,9 +114,15 @@ export default function OrderList() {
         </div>
 
         {["waiter", "admin"].includes(user?.role) && (
-          <Link to="/orders/new" className="btn-primary shrink-0">
-            <Plus size={16} /> Novo Pedido
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/orders/new" className="btn-primary shrink-0">
+              <Plus size={16} /> Novo Pedido
+            </Link>
+
+            <Link to="/dashboard/history" className="btn-secondary shrink-0">
+              Histórico
+            </Link>
+          </div>
         )}
       </div>
 
