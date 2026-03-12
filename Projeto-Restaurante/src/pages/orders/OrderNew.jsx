@@ -277,6 +277,14 @@ export default function OrderNew() {
                 "Confirmar Pedido"
               )}
             </button>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="btn-secondary w-full justify-center py-2.5"
+              disabled={submitting}
+            >
+              Cancelar
+            </button>
           </form>
         </div>
       </div>

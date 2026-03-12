@@ -70,6 +70,14 @@ export default function WaiterNew() {
             >
               Criar
             </button>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="btn-secondary"
+              disabled={loading}
+            >
+              Cancelar
+            </button>
           </div>
         </form>
       </div>

@@ -4,6 +4,7 @@ import LoadingSpinner from "../../components/LoadingSpinner.jsx";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { Copy } from "lucide-react";
+import Modal from "../../components/Modal.jsx";
 
 export default function WaiterList() {
   const [waiters, setWaiters] = useState([]);
@@ -30,6 +31,8 @@ export default function WaiterList() {
   useEffect(() => {
     fetch();
   }, []);
+
+  const [resetModal, setResetModal] = useState({ open: false, waiter: null });
 
   async function fetch() {
     try {
@@ -111,31 +114,7 @@ export default function WaiterList() {
                     <td className="py-2 px-6 whitespace-nowrap">{w.role}</td>
                     <td className="py-2 px-6 whitespace-nowrap">
                       <button
-                        onClick={async () => {
-                          if (
-                            !confirm(`Redefinir senha do usuário ${w.email}?`)
-                          )
-                            return;
-                          try {
-                            const { data } = await api.post(
-                              `/users/${w.id}/reset-password`,
-                            );
-                            // store generated password to show in table column
-                            setResetPasswords((p) => ({
-                              ...p,
-                              [w.id]: data.password,
-                            }));
-                            fetch();
-                            toast.success(
-                              "Senha redefinida e exibida na tabela",
-                            );
-                          } catch (err) {
-                            toast.error(
-                              err?.response?.data?.message ??
-                                "Erro ao redefinir senha",
-                            );
-                          }
-                        }}
+                        onClick={() => setResetModal({ open: true, waiter: w })}
                         className="btn-secondary text-xs"
                       >
                         Redefinir senha
@@ -149,6 +128,54 @@ export default function WaiterList() {
         </div>
       )}
       {/* Note: generated password appears in the table column 'Senha' after reset */}
+
+      <Modal
+        title={
+          resetModal.waiter
+            ? `Redefinir senha - ${resetModal.waiter.email}`
+            : "Redefinir senha"
+        }
+        isOpen={resetModal.open}
+        onClose={() => setResetModal({ open: false, waiter: null })}
+      >
+        <p className="text-sm text-gray-400 mb-4">
+          Deseja realmente redefinir a senha deste usuário? A nova senha será
+          exibida na coluna "Senha" e você poderá copiá-la.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setResetModal({ open: false, waiter: null })}
+            className="btn-secondary"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={async () => {
+              if (!resetModal.waiter) return;
+              try {
+                const { data } = await api.post(
+                  `/users/${resetModal.waiter.id}/reset-password`,
+                );
+                setResetPasswords((p) => ({
+                  ...p,
+                  [resetModal.waiter.id]: data.password,
+                }));
+                fetch();
+                toast.success("Senha redefinida e exibida na tabela");
+              } catch (err) {
+                toast.error(
+                  err?.response?.data?.message ?? "Erro ao redefinir senha",
+                );
+              } finally {
+                setResetModal({ open: false, waiter: null });
+              }
+            }}
+            className="btn-primary"
+          >
+            Confirmar
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

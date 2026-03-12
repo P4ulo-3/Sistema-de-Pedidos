@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Grid,
   MapPin,
+  ArrowLeft,
   Pizza,
   LogOut,
 } from "lucide-react";
@@ -75,6 +76,15 @@ export default function Navbar() {
     <>
       <header className="flex items-center justify-between px-5 py-3.5 bg-surface-950 border-b border-surface-700">
         <div className="flex items-center gap-3">
+          {pathname !== "/dashboard" && pathname !== "/login" && (
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 rounded-md text-gray-300 hover:bg-surface-800"
+              aria-label="Voltar"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
           <button
             onClick={() => setOpen(true)}
             className="lg:hidden p-2 rounded-md text-gray-300 hover:bg-surface-800"
