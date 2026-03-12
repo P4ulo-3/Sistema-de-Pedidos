@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar.jsx";
 import Navbar from "./Navbar.jsx";
+import PWAInstallModal from "./PWAInstallModal.jsx";
 
 export default function Layout() {
   return (
@@ -12,6 +13,7 @@ export default function Layout() {
         <Navbar />
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <Outlet />
+          <PWAInstallModal />
         </main>
       </div>
     </div>
