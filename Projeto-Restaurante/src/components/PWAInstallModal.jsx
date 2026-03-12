@@ -42,6 +42,19 @@ export default function PWAInstallModal() {
     window.addEventListener("beforeinstallprompt", beforeInstallHandler);
     window.addEventListener("appinstalled", handleInstalled);
 
+    // allow forcing/showing on localhost or via ?showPwa=1 for testing
+    try {
+      const url = new URL(window.location.href);
+      const force = url.searchParams.get("showPwa") === "1";
+      const isLocal = /^(localhost|127\.|0\.)/.test(window.location.hostname);
+      if ((force || isLocal) && !localStorage.getItem("pwa_installed_v1")) {
+        setSupported(true);
+        setOpen(true);
+      }
+    } catch (err) {
+      // ignore
+    }
+
     return () => {
       window.removeEventListener("beforeinstallprompt", beforeInstallHandler);
       window.removeEventListener("appinstalled", handleInstalled);
