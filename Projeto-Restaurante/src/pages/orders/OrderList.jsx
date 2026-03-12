@@ -43,12 +43,29 @@ export default function OrderList() {
 
   useEffect(() => {
     fetchOrders();
+
+    // Re-fetch quando o dia mudar (verifica a cada minuto)
+    const checkInterval = setInterval(() => {
+      const today = new Date().toISOString().slice(0, 10);
+      if (today !== window.__orders_today) {
+        window.__orders_today = today;
+        fetchOrders();
+      }
+    }, 60 * 1000);
+
+    return () => clearInterval(checkInterval);
   }, [statusFilter]);
 
   async function fetchOrders() {
     try {
       setLoading(true);
-      const params = statusFilter ? { status: statusFilter } : {};
+      const today = new Date().toISOString().slice(0, 10);
+      // persist current day to window to allow cross-component detection
+      window.__orders_today = window.__orders_today || today;
+
+      const params = { date: today };
+      if (statusFilter) params.status = statusFilter;
+
       const { data } = await api.get("/orders", { params });
       setOrders(data);
     } catch {

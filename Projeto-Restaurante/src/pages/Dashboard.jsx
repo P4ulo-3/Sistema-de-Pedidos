@@ -65,7 +65,8 @@ export default function Dashboard() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/orders");
+      const today = new Date().toISOString().slice(0, 10);
+      const res = await api.get("/orders", { params: { date: today } });
       setOrders(res.data);
       setLastUpdated(new Date());
     } catch (e) {
@@ -77,6 +78,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchOrders();
+
+    // Re-fetch quando o dia mudar (verifica a cada minuto)
+    const checkInterval = setInterval(() => {
+      const today = new Date().toISOString().slice(0, 10);
+      if (today !== window.__orders_today) {
+        window.__orders_today = today;
+        fetchOrders();
+      }
+    }, 60 * 1000);
+
+    return () => clearInterval(checkInterval);
   }, []);
 
   // Filtra apenas pedidos do dia atual

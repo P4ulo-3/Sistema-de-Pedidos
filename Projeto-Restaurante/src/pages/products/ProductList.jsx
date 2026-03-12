@@ -96,6 +96,22 @@ export default function ProductList() {
               key={product.id}
               className="card flex items-center justify-between gap-3 hover:border-surface-600 transition-colors py-2 px-3"
             >
+              <div className="w-16 h-12 rounded overflow-hidden bg-surface-700 flex items-center justify-center mr-3 flex-shrink-0">
+                {product.imageUrl ? (
+                  <img
+                    src={
+                      product.imageUrl?.startsWith("http")
+                        ? product.imageUrl
+                        : `/api${product.imageUrl}`
+                    }
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Package size={20} className="text-surface-600" />
+                )}
+              </div>
+
               <div className="flex-1 pr-3">
                 <p className="font-semibold text-gray-100 text-sm leading-tight">
                   {product.name}
@@ -117,22 +133,6 @@ export default function ProductList() {
                   <div className="text-brand-400 font-bold text-sm">
                     R$ {product.price.toFixed(2)}
                   </div>
-                </div>
-
-                <div className="w-16 h-12 rounded overflow-hidden bg-surface-700 flex items-center justify-center">
-                  {product.imageUrl ? (
-                    <img
-                      src={
-                        product.imageUrl?.startsWith("http")
-                          ? product.imageUrl
-                          : `/api${product.imageUrl}`
-                      }
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Package size={20} className="text-surface-600" />
-                  )}
                 </div>
 
                 {isAdmin && (
