@@ -166,9 +166,12 @@ export default function OrderList() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-bold text-gray-100">
-                      {Number.isNaN(Number(order.table))
-                        ? `Cliente: ${order.table}`
-                        : `Mesa ${order.table}`}
+                      {order.table ? `Mesa ${order.table}` : null}
+                      {order.customer && order.table
+                        ? ` · Cliente: ${order.customer}`
+                        : !order.table && order.customer
+                          ? `Cliente: ${order.customer}`
+                          : null}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {order.waiter?.name} ·{" "}
@@ -177,6 +180,11 @@ export default function OrderList() {
                         minute: "2-digit",
                       })}
                     </p>
+                    {order.notes && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        {order.notes}
+                      </p>
+                    )}
                   </div>
                   <Badge variant={info.variant}>{info.label}</Badge>
                 </div>

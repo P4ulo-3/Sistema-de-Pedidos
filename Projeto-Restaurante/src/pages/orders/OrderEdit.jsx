@@ -14,6 +14,7 @@ export default function OrderEdit() {
   const [cart, setCart] = useState([]);
   const [table, setTable] = useState("");
   const [customer, setCustomer] = useState("");
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,14 +43,21 @@ export default function OrderEdit() {
         return;
       }
 
-      // if table value is numeric, keep in table, otherwise treat as customer name
-      if (Number.isNaN(Number(current.table))) {
-        setCustomer(current.table);
+      // determine table and customer fields
+      const tbl = current.table;
+      if (tbl == null || tbl === "") {
         setTable("");
+      } else if (!Number.isNaN(Number(tbl))) {
+        setTable(String(tbl));
       } else {
-        setTable(current.table);
-        setCustomer("");
+        setTable("");
       }
+
+      setCustomer(
+        current.customer ||
+          (tbl && Number.isNaN(Number(tbl)) ? String(tbl) : ""),
+      );
+      setNotes(current.notes || "");
       setCart(
         current.items.map((it) => ({
           product: it.product,
@@ -96,15 +104,20 @@ export default function OrderEdit() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const tableValue = customer.trim() || table.trim();
-    if (!tableValue)
+    const tablePayload =
+      table && String(table).trim() ? String(table).trim() : null;
+    const customerPayload = customer.trim() || null;
+    const notesPayload = notes.trim() || null;
+    if (!tablePayload && !customerPayload)
       return toast.error("Informe o número da mesa ou nome do cliente");
     if (cart.length === 0) return toast.error("Adicione pelo menos um item");
 
     try {
       setSubmitting(true);
       await api.put(`/orders/${id}`, {
-        table: tableValue,
+        table: tablePayload,
+        customer: customerPayload,
+        notes: notesPayload,
         items: cart.map((c) => ({
           productId: c.product.id,
           quantity: c.quantity,
@@ -194,6 +207,16 @@ export default function OrderEdit() {
                 placeholder="Ex: João Silva"
                 value={customer}
                 onChange={(e) => setCustomer(e.target.value)}
+                className="input"
+                disabled={submitting}
+              />
+            </div>
+            <div>
+              <label className="label">Opções adicionais</label>
+              <input
+                placeholder="Ex: sem cebola, ponto da carne, adicionais..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
                 className="input"
                 disabled={submitting}
               />

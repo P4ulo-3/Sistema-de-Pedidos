@@ -129,6 +129,9 @@ export default function TablesMap() {
                       <div>
                         <div className="text-xs">Garçom: {o.waiter?.name}</div>
                         <div className="text-xs">Status: {o.status}</div>
+                        {o.customer && (
+                          <div className="text-xs">Cliente: {o.customer}</div>
+                        )}
                       </div>
                       <div className="text-sm font-semibold">
                         R${" "}
@@ -149,6 +152,11 @@ export default function TablesMap() {
                         </li>
                       ))}
                     </ul>
+                    {o.notes && (
+                      <div className="mt-2 text-xs text-gray-300">
+                        {o.notes}
+                      </div>
+                    )}
                   </div>
                 ));
               })()}

@@ -13,6 +13,7 @@ export default function OrderNew() {
   const [cart, setCart] = useState([]); // [{ product, quantity }]
   const [table, setTable] = useState("");
   const [customer, setCustomer] = useState("");
+  const [notes, setNotes] = useState("");
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -85,7 +86,9 @@ export default function OrderNew() {
     try {
       setSubmitting(true);
       await api.post("/orders", {
-        table: String(tableValue).trim(),
+        table: table && String(table).trim() ? String(table).trim() : null,
+        customer: customer.trim() || null,
+        notes: notes.trim() || null,
         items: cart.map((c) => ({
           productId: c.product.id,
           quantity: c.quantity,
@@ -188,6 +191,16 @@ export default function OrderNew() {
                 placeholder="Ex: João Silva"
                 value={customer}
                 onChange={(e) => setCustomer(e.target.value)}
+                className="input"
+                disabled={submitting}
+              />
+            </div>
+            <div>
+              <label className="label">Opções adicionais</label>
+              <input
+                placeholder="Ex: sem cebola, ponto da carne, adicionais..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
                 className="input"
                 disabled={submitting}
               />

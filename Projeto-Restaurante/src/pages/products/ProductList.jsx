@@ -90,70 +90,85 @@ export default function ProductList() {
           <p className="text-sm">Nenhum produto encontrado.</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {filtered.map((product) => (
-            <div
-              key={product.id}
-              className="card flex items-center justify-between gap-3 hover:border-surface-600 transition-colors py-2 px-3"
-            >
-              <div className="w-16 h-12 rounded overflow-hidden bg-surface-700 flex items-center justify-center mr-3 flex-shrink-0">
-                {product.imageUrl ? (
-                  <img
-                    src={
-                      product.imageUrl?.startsWith("http")
-                        ? product.imageUrl
-                        : `/api${product.imageUrl}`
-                    }
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Package size={20} className="text-surface-600" />
-                )}
-              </div>
+        <div className="space-y-4">
+          {(() => {
+            // group products by category name ('' -> Outros)
+            const groups = {};
+            filtered.forEach((p) => {
+              const key = p.category?.name || "Outros";
+              if (!groups[key]) groups[key] = [];
+              groups[key].push(p);
+            });
+            return Object.keys(groups).map((cat) => (
+              <div key={cat}>
+                <h3 className="text-sm font-semibold text-gray-200 mb-2">
+                  {cat}
+                </h3>
+                <div className="space-y-2">
+                  {groups[cat].map((product) => (
+                    <div
+                      key={product.id}
+                      className="card flex items-center justify-between gap-3 hover:border-surface-600 transition-colors py-2 px-3"
+                    >
+                      <div className="w-16 h-12 rounded overflow-hidden bg-surface-700 flex items-center justify-center mr-3 flex-shrink-0">
+                        {product.imageUrl ? (
+                          <img
+                            src={
+                              product.imageUrl?.startsWith("http")
+                                ? product.imageUrl
+                                : `/api${product.imageUrl}`
+                            }
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Package size={20} className="text-surface-600" />
+                        )}
+                      </div>
 
-              <div className="flex-1 pr-3">
-                <p className="font-semibold text-gray-100 text-sm leading-tight">
-                  {product.name}
-                </p>
-                {product.category && (
-                  <p className="text-xs text-brand-400 mt-0.5">
-                    {product.category.name}
-                  </p>
-                )}
-                {product.description && (
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                    {product.description}
-                  </p>
-                )}
-              </div>
+                      <div className="flex-1 pr-3">
+                        <p className="font-semibold text-gray-100 text-sm leading-tight">
+                          {product.name}
+                        </p>
+                        {product.description && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            {product.description}
+                          </p>
+                        )}
+                      </div>
 
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <div className="text-brand-400 font-bold text-sm">
-                    R$ {product.price.toFixed(2)}
-                  </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-brand-400 font-bold text-sm">
+                            R$ {product.price.toFixed(2)}
+                          </div>
+                        </div>
+
+                        {isAdmin && (
+                          <div className="flex items-center gap-1">
+                            <Link
+                              to={`/products/${product.id}/edit`}
+                              className="p-1 rounded-lg text-gray-500 hover:text-gray-100 hover:bg-surface-700 transition-colors"
+                            >
+                              <Pencil size={14} />
+                            </Link>
+                            <button
+                              onClick={() =>
+                                setDeleteModal({ open: true, product })
+                              }
+                              className="p-1 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-
-                {isAdmin && (
-                  <div className="flex items-center gap-1">
-                    <Link
-                      to={`/products/${product.id}/edit`}
-                      className="p-1 rounded-lg text-gray-500 hover:text-gray-100 hover:bg-surface-700 transition-colors"
-                    >
-                      <Pencil size={14} />
-                    </Link>
-                    <button
-                      onClick={() => setDeleteModal({ open: true, product })}
-                      className="p-1 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                )}
               </div>
-            </div>
-          ))}
+            ));
+          })()}
         </div>
       )}
 

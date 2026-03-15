@@ -61,7 +61,9 @@ model Product {
 
 model Order {
   id        String      @id @default(uuid())
-  table     String
+  table     String?
+  customer  String?
+  notes     String?
   status    OrderStatus @default(PENDING)
   waiterId  String
   waiter    User        @relation(fields: [waiterId], references: [id])

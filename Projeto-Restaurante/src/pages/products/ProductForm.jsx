@@ -50,6 +50,15 @@ export default function ProductForm() {
     load();
   }, [id, isEdit, navigate]);
 
+  useEffect(() => {
+    api
+      .get("/categories")
+      .then((res) => setCategories(res.data))
+      .catch(() => {
+        // ignore
+      });
+  }, []);
+
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
@@ -186,6 +195,25 @@ export default function ProductForm() {
               className="input"
               disabled={loading}
             />
+          </div>
+
+          {/* Categoria */}
+          <div>
+            <label className="label">Categoria</label>
+            <select
+              name="categoryId"
+              value={form.categoryId}
+              onChange={handleChange}
+              className="input"
+              disabled={loading}
+            >
+              <option value="">Sem categoria</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Upload de imagem (criação e edição) */}

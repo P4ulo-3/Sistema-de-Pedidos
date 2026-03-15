@@ -10,12 +10,12 @@ const allowedStatuses = [
 
 async function createOrder(req, res, next) {
   try {
-    const { table, items } = req.body;
+    const { table, items, customer, notes } = req.body;
 
-    if (!table || !Array.isArray(items) || items.length === 0) {
+    if ((!table && !customer) || !Array.isArray(items) || items.length === 0) {
       return res
         .status(400)
-        .json({ message: "table e items são obrigatórios" });
+        .json({ message: "table (ou customer) e items são obrigatórios" });
     }
 
     const productIds = items.map((item) => item.productId);
@@ -36,7 +36,9 @@ async function createOrder(req, res, next) {
 
     const order = await prisma.order.create({
       data: {
-        table,
+        table: table || null,
+        customer: customer || null,
+        notes: notes || null,
         waiterId: req.user.id,
         items: {
           create: items.map((item) => ({
@@ -111,6 +113,8 @@ async function listOrders(req, res, next) {
         waiter: {
           select: { id: true, name: true, role: true },
         },
+        // include optional fields
+        // Prisma will include customer and notes automatically as they are columns
       },
     });
 
@@ -149,11 +153,9 @@ async function updateOrderStatus(req, res, next) {
 
       if (status === "CANCELED") {
         if (existing.status !== "PENDING") {
-          return res
-            .status(400)
-            .json({
-              message: "Somente pedidos pendentes podem ser cancelados",
-            });
+          return res.status(400).json({
+            message: "Somente pedidos pendentes podem ser cancelados",
+          });
         }
       }
 
@@ -199,6 +201,7 @@ async function updateOrderStatus(req, res, next) {
     try {
       const tableNumber = Number(updated.table);
       if (
+        updated.table &&
         !Number.isNaN(tableNumber) &&
         (status === "DELIVERED" || status === "CANCELED")
       ) {
@@ -220,7 +223,7 @@ async function updateOrderStatus(req, res, next) {
 async function updateOrder(req, res, next) {
   try {
     const { id } = req.params;
-    const { table, items } = req.body;
+    const { table, items, customer, notes } = req.body;
 
     const existing = await prisma.order.findUnique({
       where: { id },
@@ -262,7 +265,9 @@ async function updateOrder(req, res, next) {
     const updated = await prisma.order.update({
       where: { id },
       data: {
-        table,
+        table: table || null,
+        customer: customer || null,
+        notes: notes || null,
         items: {
           create: items.map((item) => ({
             productId: item.productId,
