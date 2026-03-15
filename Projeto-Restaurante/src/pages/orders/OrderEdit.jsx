@@ -13,6 +13,7 @@ export default function OrderEdit() {
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState([]);
   const [table, setTable] = useState("");
+  const [customer, setCustomer] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -41,7 +42,14 @@ export default function OrderEdit() {
         return;
       }
 
-      setTable(current.table);
+      // if table value is numeric, keep in table, otherwise treat as customer name
+      if (Number.isNaN(Number(current.table))) {
+        setCustomer(current.table);
+        setTable("");
+      } else {
+        setTable(current.table);
+        setCustomer("");
+      }
       setCart(
         current.items.map((it) => ({
           product: it.product,
@@ -88,13 +96,15 @@ export default function OrderEdit() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!table.trim()) return toast.error("Informe o número da mesa");
+    const tableValue = customer.trim() || table.trim();
+    if (!tableValue)
+      return toast.error("Informe o número da mesa ou nome do cliente");
     if (cart.length === 0) return toast.error("Adicione pelo menos um item");
 
     try {
       setSubmitting(true);
       await api.put(`/orders/${id}`, {
-        table: table.trim(),
+        table: tableValue,
         items: cart.map((c) => ({
           productId: c.product.id,
           quantity: c.quantity,
@@ -178,6 +188,16 @@ export default function OrderEdit() {
             <h2 className="text-sm font-semibold text-gray-100">
               Editar Pedido
             </h2>
+            <div>
+              <label className="label">Nome do Cliente (opcional)</label>
+              <input
+                placeholder="Ex: João Silva"
+                value={customer}
+                onChange={(e) => setCustomer(e.target.value)}
+                className="input"
+                disabled={submitting}
+              />
+            </div>
             <div>
               <label className="label">Mesa *</label>
               <input

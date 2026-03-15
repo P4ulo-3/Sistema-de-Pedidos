@@ -12,6 +12,7 @@ export default function OrderNew() {
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState([]); // [{ product, quantity }]
   const [table, setTable] = useState("");
+  const [customer, setCustomer] = useState("");
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -69,8 +70,11 @@ export default function OrderNew() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!table || (typeof table === "string" && !table.trim())) {
-      toast.error("Informe o número da mesa");
+    const tableValue =
+      customer.trim() ||
+      (typeof table === "string" ? table.trim() : String(table));
+    if (!tableValue) {
+      toast.error("Informe o número da mesa ou nome do cliente");
       return;
     }
     if (cart.length === 0) {
@@ -81,7 +85,7 @@ export default function OrderNew() {
     try {
       setSubmitting(true);
       await api.post("/orders", {
-        table: String(table).trim(),
+        table: String(tableValue).trim(),
         items: cart.map((c) => ({
           productId: c.product.id,
           quantity: c.quantity,
@@ -177,6 +181,17 @@ export default function OrderNew() {
             <h2 className="text-sm font-semibold text-gray-100">
               Resumo do Pedido
             </h2>
+
+            <div>
+              <label className="label">Nome do Cliente (opcional)</label>
+              <input
+                placeholder="Ex: João Silva"
+                value={customer}
+                onChange={(e) => setCustomer(e.target.value)}
+                className="input"
+                disabled={submitting}
+              />
+            </div>
 
             {/* Mesa */}
             <div>

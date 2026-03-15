@@ -94,6 +94,20 @@ export default function OrderList() {
     }
   }
 
+  async function closeOrder(order) {
+    if (!confirm("Fechar comanda e marcar como entregue?")) return;
+    try {
+      setUpdatingId(order.id);
+      await api.patch(`/orders/${order.id}/status`, { status: "DELIVERED" });
+      toast.success("Comanda encerrada e total computado");
+      fetchOrders();
+    } catch {
+      toast.error("Erro ao fechar comanda");
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
   return (
     <div className="space-y-5 max-w-6xl">
       {/* Header */}
@@ -152,7 +166,9 @@ export default function OrderList() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-bold text-gray-100">
-                      Mesa {order.table}
+                      {Number.isNaN(Number(order.table))
+                        ? `Cliente: ${order.table}`
+                        : `Mesa ${order.table}`}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {order.waiter?.name} ·{" "}
@@ -192,6 +208,16 @@ export default function OrderList() {
 
                 {/* Botões de ação: avanço, cancelar ou editar */}
                 <div className="space-y-2">
+                  {/* Waiter: fechar comanda direto */}
+                  {user?.role === "waiter" && order.status !== "DELIVERED" && (
+                    <button
+                      onClick={() => closeOrder(order)}
+                      disabled={updatingId === order.id}
+                      className="btn-primary w-full justify-center text-xs py-2"
+                    >
+                      Fechar Comanda
+                    </button>
+                  )}
                   {canUpdateStatus && info.next && (
                     <button
                       onClick={() => advanceStatus(order)}

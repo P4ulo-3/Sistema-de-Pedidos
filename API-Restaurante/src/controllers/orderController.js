@@ -134,23 +134,29 @@ async function updateOrderStatus(req, res, next) {
       return res.status(404).json({ message: "Pedido não encontrado" });
     }
 
-    // If waiter is requesting, only allow cancel of own pending orders
+    // If waiter is requesting, allow cancel or closing (DELIVERED) for own orders
     if (req.user.role === "waiter") {
-      if (status !== "CANCELED") {
+      if (!["CANCELED", "DELIVERED"].includes(status)) {
         return res
           .status(403)
-          .json({ message: "Waiter só pode cancelar pedidos" });
+          .json({ message: "Waiter só pode cancelar ou fechar comanda" });
       }
       if (existing.waiterId !== req.user.id) {
         return res
           .status(403)
-          .json({ message: "Não autorizado para cancelar este pedido" });
+          .json({ message: "Não autorizado para alterar este pedido" });
       }
-      if (existing.status !== "PENDING") {
-        return res
-          .status(400)
-          .json({ message: "Somente pedidos pendentes podem ser cancelados" });
+
+      if (status === "CANCELED") {
+        if (existing.status !== "PENDING") {
+          return res
+            .status(400)
+            .json({
+              message: "Somente pedidos pendentes podem ser cancelados",
+            });
+        }
       }
+
       const updated = await prisma.order.update({
         where: { id },
         data: { status },
@@ -159,6 +165,23 @@ async function updateOrderStatus(req, res, next) {
           waiter: { select: { id: true, name: true, role: true } },
         },
       });
+
+      // if order is finished or canceled, try to free the table
+      try {
+        const tableNumber = Number(updated.table);
+        if (
+          !Number.isNaN(tableNumber) &&
+          (status === "DELIVERED" || status === "CANCELED")
+        ) {
+          await prisma.table.update({
+            where: { number: tableNumber },
+            data: { status: "FREE" },
+          });
+        }
+      } catch (e) {
+        // ignore if table not managed
+      }
+
       return res.json(updated);
     }
 

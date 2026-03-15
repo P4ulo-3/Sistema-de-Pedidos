@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios.js";
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import toast from "react-hot-toast";
 
 function statusBorder(s) {
   if (s === "FREE") return "border-green-600";
@@ -17,9 +19,13 @@ function statusTitleBg(s) {
 }
 
 export default function TablesMap() {
+  const { user } = useAuth();
   const [tables, setTables] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedTable, setSelectedTable] = useState(null);
+  const [reservationDate, setReservationDate] = useState("");
 
   useEffect(() => {
     fetchAll();
@@ -45,6 +51,38 @@ export default function TablesMap() {
 
   function ordersForTable(number) {
     return orders.filter((o) => String(o.table) === String(number));
+  }
+
+  async function markFree(t) {
+    try {
+      await api.put(`/tables/${t.id}`, { status: "FREE" });
+      toast.success("Mesa marcada como livre");
+      fetchAll();
+    } catch {
+      toast.error("Erro ao marcar mesa livre");
+    }
+  }
+
+  function openReserve(t) {
+    setSelectedTable(t);
+    setReservationDate("");
+    setShowModal(true);
+  }
+
+  async function confirmReserve() {
+    if (!selectedTable) return;
+    try {
+      await api.put(`/tables/${selectedTable.id}`, {
+        status: "RESERVED",
+        reservationDate: reservationDate || null,
+      });
+      toast.success("Mesa reservada");
+      setShowModal(false);
+      setSelectedTable(null);
+      fetchAll();
+    } catch {
+      toast.error("Erro ao reservar mesa");
+    }
   }
 
   if (loading) return <LoadingSpinner />;
@@ -114,10 +152,60 @@ export default function TablesMap() {
                   </div>
                 ));
               })()}
+              {/* Ações rápidas para garçons */}
+              {user?.role === "waiter" && (
+                <div className="mt-3 flex gap-2">
+                  {t.status !== "FREE" && (
+                    <button
+                      onClick={() => markFree(t)}
+                      className="btn-secondary flex-1 text-xs"
+                    >
+                      Marcar Livre
+                    </button>
+                  )}
+                  <button
+                    onClick={() => openReserve(t)}
+                    className="btn-primary flex-1 text-xs"
+                  >
+                    Reservar
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
+      {/* Modal de reserva simples */}
+      {showModal && selectedTable && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-surface-800 p-4 rounded w-full max-w-sm">
+            <h3 className="font-bold mb-2">
+              Reservar Mesa {selectedTable.number}
+            </h3>
+            <label className="label">Data/Hora da reserva</label>
+            <input
+              type="datetime-local"
+              value={reservationDate}
+              onChange={(e) => setReservationDate(e.target.value)}
+              className="input"
+            />
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedTable(null);
+                }}
+                className="btn-secondary flex-1"
+              >
+                Cancelar
+              </button>
+              <button onClick={confirmReserve} className="btn-primary flex-1">
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
