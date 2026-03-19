@@ -19,6 +19,17 @@ app.use(
     credentials: true,
   }),
 );
+
+// respond to preflight requests for all routes
+app.options(
+  "*",
+  cors({
+    origin:
+      process.env.FRONTEND_URL || "https://sistema-de-pedidos-1.vercel.app",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  }),
+);
 app.use(morgan("dev"));
 app.use(express.json());
 // uploads served via Cloudinary; local static uploads no longer used
