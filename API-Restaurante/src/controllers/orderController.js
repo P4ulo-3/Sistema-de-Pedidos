@@ -68,6 +68,13 @@ async function createOrder(req, res, next) {
     // ensure table is string or null
     const tableValue = table == null ? null : String(table).trim();
 
+    // debug: log payload to help diagnose Prisma validation issues (visible in server logs)
+    console.debug("Creating order payload", {
+      waiterId: req.user.id,
+      tableValue,
+      itemsCreate,
+    });
+
     let order;
     try {
       order = await prisma.order.create({
@@ -84,18 +91,19 @@ async function createOrder(req, res, next) {
         },
       });
     } catch (e) {
-      // handle common Prisma validation errors and return a 400 instead of 500
+      // handle Prisma validation / known errors and return 400 with code/message
       if (
         e &&
-        (e.name === "PrismaClientValidationError" || e.code === "P2000")
+        (e.name === "PrismaClientValidationError" ||
+          e.name === "PrismaClientKnownRequestError" ||
+          typeof e.code === "string")
       ) {
-        console.error("Prisma validation error creating order:", e.message);
-        return res
-          .status(400)
-          .json({
-            message: "Dados inválidos para criação do pedido",
-            detail: e.message,
-          });
+        console.error("Prisma error creating order:", e.code, e.message);
+        return res.status(400).json({
+          message: "Dados inválidos para criação do pedido",
+          code: e.code || e.name,
+          detail: e.message,
+        });
       }
       throw e;
     }
@@ -338,12 +346,10 @@ async function updateOrder(req, res, next) {
     } catch (e) {
       if (e && e.name === "PrismaClientValidationError") {
         console.error("Prisma validation error updating order:", e.message);
-        return res
-          .status(400)
-          .json({
-            message: "Dados inválidos para atualização do pedido",
-            detail: e.message,
-          });
+        return res.status(400).json({
+          message: "Dados inválidos para atualização do pedido",
+          detail: e.message,
+        });
       }
       throw e;
     }
