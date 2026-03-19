@@ -21,12 +21,20 @@ async function createOrder(req, res, next) {
         .json({ message: "table (ou customer) e items são obrigatórios" });
     }
 
+    // items must be objects with valid productId
+    if (!items.every((it) => it && typeof it.productId === "string")) {
+      return res
+        .status(400)
+        .json({ message: "Cada item precisa ter productId válido" });
+    }
+
     const productIds = items.map((item) => item.productId);
+    const uniqueProductIds = Array.from(new Set(productIds.filter(Boolean)));
     const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: uniqueProductIds } },
     });
 
-    if (products.length !== productIds.length) {
+    if (products.length !== uniqueProductIds.length) {
       return res
         .status(400)
         .json({ message: "Um ou mais produtos não existem" });
@@ -256,11 +264,18 @@ async function updateOrder(req, res, next) {
         .json({ message: "table e items são obrigatórios" });
     }
 
+    if (!items.every((it) => it && typeof it.productId === "string")) {
+      return res
+        .status(400)
+        .json({ message: "Cada item precisa ter productId válido" });
+    }
+
     const productIds = items.map((it) => it.productId);
+    const uniqueProductIds = Array.from(new Set(productIds.filter(Boolean)));
     const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: uniqueProductIds } },
     });
-    if (products.length !== productIds.length) {
+    if (products.length !== uniqueProductIds.length) {
       return res
         .status(400)
         .json({ message: "Um ou mais produtos não existem" });
@@ -284,7 +299,7 @@ async function updateOrder(req, res, next) {
           create: items.map((item) => ({
             productId: item.productId,
             quantity: Number(item.quantity) || 1,
-            unitPrice: priceById[item.productId],
+            unitPrice: Number(priceById[item.productId]),
           })),
         },
       },
