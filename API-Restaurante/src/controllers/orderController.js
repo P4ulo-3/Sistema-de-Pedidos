@@ -124,24 +124,17 @@ async function createOrder(req, res, next) {
     }
 
     return res.status(201).json(order);
-    } catch (e) {
-      if (
-        e &&
-        (e.name === "PrismaClientValidationError" ||
-          e.name === "PrismaClientKnownRequestError" ||
-          typeof e.code === "string")
-      ) {
-        console.error("Prisma error updating order:", e);
-        return res.status(400).json({
-          message: "Dados inválidos para atualização do pedido",
-          code: e.code || e.name,
-          detail: e.message,
-          meta: e.meta || null,
-        });
-      }
-      console.error("Unexpected error updating order:", e);
-      throw e;
-    }
+  } catch (error) {
+    return next(error);
+  }
+
+async function listOrders(req, res, next) {
+  try {
+    const { status, date } = req.query;
+    const where = {};
+
+    if (status) {
+      if (!allowedStatuses.includes(status)) {
         return res.status(400).json({ message: "Status inválido" });
       }
       where.status = status;
