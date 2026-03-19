@@ -12,6 +12,9 @@ async function createOrder(req, res, next) {
   try {
     const { table, items, customer, notes } = req.body;
 
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Usuário não autenticado" });
+    }
     if ((!table && !customer) || !Array.isArray(items) || items.length === 0) {
       return res
         .status(400)
@@ -34,6 +37,15 @@ async function createOrder(req, res, next) {
       return acc;
     }, {});
 
+    // validate resolved prices for each item
+    for (const it of items) {
+      if (!priceById.hasOwnProperty(it.productId)) {
+        return res
+          .status(400)
+          .json({ message: "Um ou mais produtos não existem" });
+      }
+    }
+
     const order = await prisma.order.create({
       data: {
         table: table || null,
@@ -44,7 +56,7 @@ async function createOrder(req, res, next) {
           create: items.map((item) => ({
             productId: item.productId,
             quantity: Number(item.quantity) > 0 ? Number(item.quantity) : 1,
-            unitPrice: priceById[item.productId],
+            unitPrice: Number(priceById[item.productId]),
           })),
         },
       },

@@ -25,6 +25,16 @@ function errorHandler(error, req, res, next) {
   }
 
   // Always return a generic error body in production
+  if (process.env.NODE_ENV !== "production") {
+    return res
+      .status(500)
+      .json({
+        message: "Erro interno do servidor",
+        error: error.message,
+        stack: error.stack,
+      });
+  }
+
   return res.status(500).json({ message: "Erro interno do servidor" });
 }
 
