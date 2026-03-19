@@ -45,38 +45,60 @@ async function createOrder(req, res, next) {
       return acc;
     }, {});
 
-    // validate resolved prices for each item
+    // validate resolved prices for each item and build create payload
+    const itemsCreate = [];
     for (const it of items) {
       if (!priceById.hasOwnProperty(it.productId)) {
         return res
           .status(400)
           .json({ message: "Um ou mais produtos não existem" });
       }
+
+      const qty = Number(it.quantity) > 0 ? Number(it.quantity) : 1;
+      const unitPrice = Number(priceById[it.productId]);
+      if (!isFinite(unitPrice)) {
+        return res
+          .status(400)
+          .json({ message: `Preço inválido para o produto ${it.productId}` });
+      }
+
+      itemsCreate.push({ productId: it.productId, quantity: qty, unitPrice });
     }
 
-    const order = await prisma.order.create({
-      data: {
-        table: table || null,
-        customer: customer || null,
-        notes: notes || null,
-        waiterId: req.user.id,
-        items: {
-          create: items.map((item) => ({
-            productId: item.productId,
-            quantity: Number(item.quantity) > 0 ? Number(item.quantity) : 1,
-            unitPrice: Number(priceById[item.productId]),
-          })),
+    // ensure table is string or null
+    const tableValue = table == null ? null : String(table).trim();
+
+    let order;
+    try {
+      order = await prisma.order.create({
+        data: {
+          table: tableValue || null,
+          customer: customer || null,
+          notes: notes || null,
+          waiterId: req.user.id,
+          items: { create: itemsCreate },
         },
-      },
-      include: {
-        items: {
-          include: { product: true },
+        include: {
+          items: { include: { product: true } },
+          waiter: { select: { id: true, name: true, role: true } },
         },
-        waiter: {
-          select: { id: true, name: true, role: true },
-        },
-      },
-    });
+      });
+    } catch (e) {
+      // handle common Prisma validation errors and return a 400 instead of 500
+      if (
+        e &&
+        (e.name === "PrismaClientValidationError" || e.code === "P2000")
+      ) {
+        console.error("Prisma validation error creating order:", e.message);
+        return res
+          .status(400)
+          .json({
+            message: "Dados inválidos para criação do pedido",
+            detail: e.message,
+          });
+      }
+      throw e;
+    }
 
     // mark table as occupied if a table record exists
     try {
@@ -289,25 +311,42 @@ async function updateOrder(req, res, next) {
     // replace items
     await prisma.orderItem.deleteMany({ where: { orderId: id } });
 
-    const updated = await prisma.order.update({
-      where: { id },
-      data: {
-        table: table || null,
-        customer: customer || null,
-        notes: notes || null,
-        items: {
-          create: items.map((item) => ({
-            productId: item.productId,
-            quantity: Number(item.quantity) || 1,
-            unitPrice: Number(priceById[item.productId]),
-          })),
-        },
-      },
-      include: {
-        items: { include: { product: true } },
-        waiter: { select: { id: true, name: true, role: true } },
-      },
+    const itemsCreate = items.map((it) => {
+      const qty = Number(it.quantity) > 0 ? Number(it.quantity) : 1;
+      const unitPrice = Number(priceById[it.productId]);
+      if (!isFinite(unitPrice)) {
+        throw new Error(`Preço inválido para o produto ${it.productId}`);
+      }
+      return { productId: it.productId, quantity: qty, unitPrice };
     });
+
+    let updated;
+    try {
+      updated = await prisma.order.update({
+        where: { id },
+        data: {
+          table: table || null,
+          customer: customer || null,
+          notes: notes || null,
+          items: { create: itemsCreate },
+        },
+        include: {
+          items: { include: { product: true } },
+          waiter: { select: { id: true, name: true, role: true } },
+        },
+      });
+    } catch (e) {
+      if (e && e.name === "PrismaClientValidationError") {
+        console.error("Prisma validation error updating order:", e.message);
+        return res
+          .status(400)
+          .json({
+            message: "Dados inválidos para atualização do pedido",
+            detail: e.message,
+          });
+      }
+      throw e;
+    }
 
     return res.json(updated);
   } catch (error) {
