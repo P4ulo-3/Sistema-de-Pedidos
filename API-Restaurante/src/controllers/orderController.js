@@ -127,6 +127,7 @@ async function createOrder(req, res, next) {
   } catch (error) {
     return next(error);
   }
+}
 
 async function listOrders(req, res, next) {
   try {
