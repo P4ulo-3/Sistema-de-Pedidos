@@ -75,39 +75,69 @@ async function createOrder(req, res, next) {
       itemsCreate,
     });
 
+    // prepare base data for create
+    const createDataBase = {
+      table: tableValue || null,
+      customer: customer || null,
+      notes: notes || null,
+      waiterId: req.user.id,
+      items: { create: itemsCreate },
+    };
+
+    // attempt create with fallback: if Prisma reports Unknown argument, remove and retry
     let order;
     try {
-      order = await prisma.order.create({
-        data: {
-          table: tableValue || null,
-          customer: customer || null,
-          notes: notes || null,
-          waiterId: req.user.id,
-          items: { create: itemsCreate },
-        },
-        include: {
-          items: { include: { product: true } },
-          waiter: { select: { id: true, name: true, role: true } },
-        },
-      });
-    } catch (e) {
-      // handle Prisma validation / known errors and return 400 with code/message
-      if (
-        e &&
-        (e.name === "PrismaClientValidationError" ||
-          e.name === "PrismaClientKnownRequestError" ||
-          typeof e.code === "string")
-      ) {
-        console.error("Prisma error creating order:", e);
-        return res.status(400).json({
-          message: "Dados inválidos para criação do pedido",
-          code: e.code || e.name,
-          detail: e.message,
-          meta: e.meta || null,
-        });
+      let dataToUse = { ...createDataBase };
+      let attempts = 0;
+      const maxAttempts = 4;
+      while (true) {
+        attempts++;
+        try {
+          order = await prisma.order.create({
+            data: dataToUse,
+            include: {
+              items: { include: { product: true } },
+              waiter: { select: { id: true, name: true, role: true } },
+            },
+          });
+          break;
+        } catch (innerErr) {
+          const msg = innerErr && innerErr.message ? String(innerErr.message) : "";
+          const unknownArgs = [];
+          const re = /Unknown argument `([^`]+)`/g;
+          let m;
+          while ((m = re.exec(msg)) !== null) unknownArgs.push(m[1]);
+
+          if (unknownArgs.length === 0 || attempts >= maxAttempts) {
+            // return the Prisma error with details to the client
+            console.error("Prisma error creating order:", innerErr);
+            if (
+              innerErr &&
+              (innerErr.name === "PrismaClientValidationError" ||
+                innerErr.name === "PrismaClientKnownRequestError" ||
+                typeof innerErr.code === "string")
+            ) {
+              return res.status(400).json({
+                message: "Dados inválidos para criação do pedido",
+                code: innerErr.code || innerErr.name,
+                detail: innerErr.message,
+                meta: innerErr.meta || null,
+              });
+            }
+            throw innerErr;
+          }
+
+          // remove unknown args from dataToUse and retry
+          console.warn("Prisma reported unknown args, removing and retrying:", unknownArgs);
+          for (const a of unknownArgs) {
+            if (Object.prototype.hasOwnProperty.call(dataToUse, a)) delete dataToUse[a];
+          }
+          // loop to retry
+        }
       }
+    } catch (e) {
       console.error("Unexpected error creating order:", e);
-      throw e;
+      return next(e);
     }
 
     // mark table as occupied if a table record exists
@@ -330,30 +360,58 @@ async function updateOrder(req, res, next) {
       return { productId: it.productId, quantity: qty, unitPrice };
     });
 
+    // prepare update data and attempt with fallback for unknown args
+    const updateBase = {
+      table: table || null,
+      customer: customer || null,
+      notes: notes || null,
+      items: { create: itemsCreate },
+    };
+
     let updated;
     try {
-      updated = await prisma.order.update({
-        where: { id },
-        data: {
-          table: table || null,
-          customer: customer || null,
-          notes: notes || null,
-          items: { create: itemsCreate },
-        },
-        include: {
-          items: { include: { product: true } },
-          waiter: { select: { id: true, name: true, role: true } },
-        },
-      });
-    } catch (e) {
-      if (e && e.name === "PrismaClientValidationError") {
-        console.error("Prisma validation error updating order:", e.message);
-        return res.status(400).json({
-          message: "Dados inválidos para atualização do pedido",
-          detail: e.message,
-        });
+      let dataToUse = { ...updateBase };
+      let attempts = 0;
+      const maxAttempts = 4;
+      while (true) {
+        attempts++;
+        try {
+          updated = await prisma.order.update({
+            where: { id },
+            data: dataToUse,
+            include: {
+              items: { include: { product: true } },
+              waiter: { select: { id: true, name: true, role: true } },
+            },
+          });
+          break;
+        } catch (innerErr) {
+          const msg = innerErr && innerErr.message ? String(innerErr.message) : "";
+          const unknownArgs = [];
+          const re = /Unknown argument `([^`]+)`/g;
+          let m;
+          while ((m = re.exec(msg)) !== null) unknownArgs.push(m[1]);
+
+          if (unknownArgs.length === 0 || attempts >= maxAttempts) {
+            console.error("Prisma error updating order:", innerErr);
+            if (innerErr && innerErr.name === "PrismaClientValidationError") {
+              return res.status(400).json({
+                message: "Dados inválidos para atualização do pedido",
+                detail: innerErr.message,
+              });
+            }
+            throw innerErr;
+          }
+
+          console.warn("Prisma reported unknown args on update, removing and retrying:", unknownArgs);
+          for (const a of unknownArgs) {
+            if (Object.prototype.hasOwnProperty.call(dataToUse, a)) delete dataToUse[a];
+          }
+        }
       }
-      throw e;
+    } catch (e) {
+      console.error("Unexpected error updating order:", e);
+      return next(e);
     }
 
     return res.json(updated);
