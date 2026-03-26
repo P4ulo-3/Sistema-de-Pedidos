@@ -322,22 +322,18 @@ async function closeComanda(req, res, next) {
         .json({ message: "Não autorizado para fechar esta comanda" });
     }
 
-    // If there's a table number, try to mark it free. Return 204 on success.
-    try {
-      const tableNumber = Number(existing.table);
-      if (!Number.isNaN(tableNumber)) {
-        await prisma.table.update({
-          where: { number: tableNumber },
-          data: { status: "FREE" },
-        });
-      }
-    } catch (e) {
-      // ignore if table not managed
-    }
+    // Mark the order as DELIVERED, but DO NOT free the table here.
+    // The table must be freed explicitly by the waiter via /tables/:id
+    const updated = await prisma.order.update({
+      where: { id },
+      data: { status: "DELIVERED" },
+      include: {
+        items: { include: { product: true } },
+        waiter: { select: { id: true, name: true, role: true } },
+      },
+    });
 
-    return res
-      .status(200)
-      .json({ message: "Comanda fechada e mesa marcada como livre" });
+    return res.status(200).json(updated);
   } catch (error) {
     return next(error);
   }

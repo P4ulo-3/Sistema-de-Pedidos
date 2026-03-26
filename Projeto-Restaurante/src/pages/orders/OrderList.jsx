@@ -177,7 +177,6 @@ export default function OrderList() {
                         : !order.table && order.customer
                           ? `${order.customer}`
                           : null}
-                      {order.notes ? ` — ${order.notes}` : null}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {order.waiter?.name} ·{" "}
@@ -186,11 +185,7 @@ export default function OrderList() {
                         minute: "2-digit",
                       })}
                     </p>
-                    {order.notes && (
-                      <p className="text-xs text-gray-400 mt-1 hidden">
-                        {order.notes}
-                      </p>
-                    )}
+                    {/* notes moved below items */}
                   </div>
                   <Badge variant={info.variant}>{info.label}</Badge>
                 </div>
@@ -208,6 +203,13 @@ export default function OrderList() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Observações do pedido (notes) */}
+                {order.notes && (
+                  <div className="text-xs text-gray-400 mt-2">
+                    <strong>Observações:</strong> {order.notes}
+                  </div>
+                )}
 
                 {/* Total */}
                 <div className="flex justify-between pt-2 border-t border-surface-700 text-sm font-semibold">
@@ -365,7 +367,7 @@ export default function OrderList() {
                           try {
                             setUpdatingId(closeOrderId);
                             await api.patch(`/orders/${closeOrderId}/close`);
-                            toast.success("Comanda fechada e mesa liberada");
+                            toast.success("Comanda fechada");
                             setFinalizedOrders((p) => [...p, closeOrderId]);
                             setCloseModalOpen(false);
                             fetchOrders();
