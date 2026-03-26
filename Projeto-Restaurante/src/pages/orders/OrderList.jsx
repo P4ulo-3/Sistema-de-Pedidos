@@ -15,6 +15,7 @@ import Badge from "../../components/Badge.jsx";
 import LoadingSpinner from "../../components/LoadingSpinner.jsx";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import Modal from "../../components/Modal.jsx";
 
 const statusInfo = {
   PENDING: { label: "Pendente", variant: "yellow", next: "PREPARING" },
@@ -40,6 +41,10 @@ export default function OrderList() {
   const [updatingId, setUpdatingId] = useState(null);
   const canUpdateStatus = ["kitchen", "admin"].includes(user?.role);
   const navigate = useNavigate();
+  const [closeModalOpen, setCloseModalOpen] = useState(false);
+  const [closeOrderId, setCloseOrderId] = useState(null);
+  const [closeOrderTotal, setCloseOrderTotal] = useState(0);
+  const [finalizedOrders, setFinalizedOrders] = useState([]);
 
   useEffect(() => {
     fetchOrders();
@@ -284,7 +289,7 @@ export default function OrderList() {
                     </div>
                   )}
                   {/* Edit button for preparing, ready and delivered (waiter/admin) */}
-                  {["PREPARING", "READY", "DELIVERED"].includes(order.status) &&
+                  {"PREPARING", "READY"].includes(order.status) &&
                     ["waiter", "admin"].includes(user?.role) && (
                       <div className="flex gap-2">
                         <button
@@ -299,52 +304,80 @@ export default function OrderList() {
                 </div>
                 {/* Extra footer actions for delivered orders */}
                 {order.status === "DELIVERED" && (
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-orange-400">
-                        {order.waiter?.name}
-                      </span>
-                      <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded">
-                        Em aberto
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      {["waiter", "admin"].includes(user?.role) && (
-                        <button
-                          onClick={async () => {
-                            if (
-                              !confirm(
-                                "Fechar comanda e marcar mesa como livre?",
-                              )
-                            )
-                              return;
-                            try {
-                              setUpdatingId(order.id);
-                              await api.patch(`/orders/${order.id}/close`);
-                              toast.success("Comanda fechada e mesa liberada");
-                              fetchOrders();
-                            } catch (e) {
-                              toast.error("Erro ao fechar comanda");
-                            } finally {
-                              setUpdatingId(null);
-                            }
-                          }}
-                          className="btn-primary text-xs py-2"
-                        >
-                          Fechar Comanda
-                        </button>
-                      )}
-                      {["waiter", "admin"].includes(user?.role) && (
-                        <button
-                          onClick={() => navigate(`/orders/${order.id}/edit`)}
-                          className="btn-secondary text-xs py-2"
-                        >
-                          Editar
-                        </button>
-                      )}
-                    </div>
+                  <div className="mt-2">
+                    {finalizedOrders.includes(order.id) ? (
+                      <div className="flex gap-2">
+                        <div className="flex-1 text-center text-xs bg-red-600 text-white px-2 py-2 rounded">
+                          Pedido finalizado
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-center text-xs bg-green-600 text-white px-2 py-2 rounded">
+                            Em aberto
+                          </div>
+                        </div>
+                        {[("waiter", "admin")].length >= 0 && (
+                          <div className="flex-1">
+                            <button
+                              onClick={() => {
+                                const total = order.items
+                                  ?.reduce((s, i) => s + i.unitPrice * i.quantity, 0)
+                                  .toFixed(2);
+                                setCloseOrderTotal(total || 0);
+                                setCloseOrderId(order.id);
+                                setCloseModalOpen(true);
+                              }}
+                              className="btn-primary w-full text-xs py-2"
+                            >
+                              Fechar Comanda
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
+                {/* Close comanda modal */}
+                <Modal
+                  title="Fechar Comanda"
+                  isOpen={closeModalOpen && closeOrderId === order.id}
+                  onClose={() => setCloseModalOpen(false)}
+                >
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-300">
+                      Valor total do pedido: <strong>R$ {closeOrderTotal}</strong>
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCloseModalOpen(false)}
+                        className="btn-secondary flex-1"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            setUpdatingId(closeOrderId);
+                            await api.patch(`/orders/${closeOrderId}/close`);
+                            toast.success("Comanda fechada e mesa liberada");
+                            setFinalizedOrders((p) => [...p, closeOrderId]);
+                            setCloseModalOpen(false);
+                            fetchOrders();
+                          } catch (e) {
+                            toast.error("Erro ao fechar comanda");
+                          } finally {
+                            setUpdatingId(null);
+                          }
+                        }}
+                        className="btn-primary flex-1"
+                      >
+                        Confirmar Fechamento
+                      </button>
+                    </div>
+                  </div>
+                </Modal>
               </div>
             );
           })}

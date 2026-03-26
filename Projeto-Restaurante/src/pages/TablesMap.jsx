@@ -57,6 +57,15 @@ export default function TablesMap() {
     try {
       await api.put(`/tables/${t.id}`, { status: "FREE" });
       toast.success("Mesa marcada como livre");
+      // remove orders related to this table from local state immediately
+      setOrders((prev) =>
+        prev.filter((o) => String(o.table) !== String(t.number)),
+      );
+      // update local table status to FREE to clear UI immediately
+      setTables((prev) =>
+        prev.map((tbl) => (tbl.id === t.id ? { ...tbl, status: "FREE" } : tbl)),
+      );
+      // refresh in background
       fetchAll();
     } catch {
       toast.error("Erro ao marcar mesa livre");
