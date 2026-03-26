@@ -102,7 +102,8 @@ async function createOrder(req, res, next) {
           });
           break;
         } catch (innerErr) {
-          const msg = innerErr && innerErr.message ? String(innerErr.message) : "";
+          const msg =
+            innerErr && innerErr.message ? String(innerErr.message) : "";
           const unknownArgs = [];
           const re = /Unknown argument `([^`]+)`/g;
           let m;
@@ -128,9 +129,13 @@ async function createOrder(req, res, next) {
           }
 
           // remove unknown args from dataToUse and retry
-          console.warn("Prisma reported unknown args, removing and retrying:", unknownArgs);
+          console.warn(
+            "Prisma reported unknown args, removing and retrying:",
+            unknownArgs,
+          );
           for (const a of unknownArgs) {
-            if (Object.prototype.hasOwnProperty.call(dataToUse, a)) delete dataToUse[a];
+            if (Object.prototype.hasOwnProperty.call(dataToUse, a))
+              delete dataToUse[a];
           }
           // loop to retry
         }
@@ -250,18 +255,16 @@ async function updateOrderStatus(req, res, next) {
         },
       });
 
-      // if order is finished or canceled, try to free the table
+      // if order is canceled, try to free the table
       try {
         const tableNumber = Number(updated.table);
-        if (
-          !Number.isNaN(tableNumber) &&
-          (status === "DELIVERED" || status === "CANCELED")
-        ) {
+        if (!Number.isNaN(tableNumber) && status === "CANCELED") {
           await prisma.table.update({
             where: { number: tableNumber },
             data: { status: "FREE" },
           });
         }
+        // NOTE: do NOT free table automatically when status === DELIVERED.
       } catch (e) {
         // ignore if table not managed
       }
@@ -279,14 +282,50 @@ async function updateOrderStatus(req, res, next) {
       },
     });
 
-    // if order is finished or canceled, try to free the table
+    // if order is canceled, try to free the table
     try {
       const tableNumber = Number(updated.table);
       if (
         updated.table &&
         !Number.isNaN(tableNumber) &&
-        (status === "DELIVERED" || status === "CANCELED")
+        status === "CANCELED"
       ) {
+        await prisma.table.update({
+          where: { number: tableNumber },
+          data: { status: "FREE" },
+        });
+      }
+      // NOTE: do NOT free table automatically when status === DELIVERED.
+      // The table must be marked free explicitly by the waiter to match
+      // the requested behavior where delivered orders keep the table occupied.
+    } catch (e) {
+      // ignore if table not managed
+    }
+
+    return res.json(updated);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function closeComanda(req, res, next) {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.order.findUnique({ where: { id } });
+    if (!existing)
+      return res.status(404).json({ message: "Pedido não encontrado" });
+
+    // waiter can only close their own orders
+    if (req.user.role === "waiter" && existing.waiterId !== req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "Não autorizado para fechar esta comanda" });
+    }
+
+    // If there's a table number, try to mark it free. Return 204 on success.
+    try {
+      const tableNumber = Number(existing.table);
+      if (!Number.isNaN(tableNumber)) {
         await prisma.table.update({
           where: { number: tableNumber },
           data: { status: "FREE" },
@@ -296,7 +335,9 @@ async function updateOrderStatus(req, res, next) {
       // ignore if table not managed
     }
 
-    return res.json(updated);
+    return res
+      .status(200)
+      .json({ message: "Comanda fechada e mesa marcada como livre" });
   } catch (error) {
     return next(error);
   }
@@ -314,10 +355,16 @@ async function updateOrder(req, res, next) {
     if (!existing)
       return res.status(404).json({ message: "Pedido não encontrado" });
 
-    if (existing.status !== "PENDING") {
+    // Allow editing for non-canceled orders. Waiters can only edit their own orders.
+    if (existing.status === "CANCELED") {
       return res
         .status(400)
-        .json({ message: "Só é possível editar pedidos pendentes" });
+        .json({ message: "Não é possível editar pedidos cancelados" });
+    }
+    if (req.user.role === "waiter" && existing.waiterId !== req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "Não autorizado para alterar este pedido" });
     }
 
     if (!table || !Array.isArray(items) || items.length === 0) {
@@ -386,7 +433,8 @@ async function updateOrder(req, res, next) {
           });
           break;
         } catch (innerErr) {
-          const msg = innerErr && innerErr.message ? String(innerErr.message) : "";
+          const msg =
+            innerErr && innerErr.message ? String(innerErr.message) : "";
           const unknownArgs = [];
           const re = /Unknown argument `([^`]+)`/g;
           let m;
@@ -403,9 +451,13 @@ async function updateOrder(req, res, next) {
             throw innerErr;
           }
 
-          console.warn("Prisma reported unknown args on update, removing and retrying:", unknownArgs);
+          console.warn(
+            "Prisma reported unknown args on update, removing and retrying:",
+            unknownArgs,
+          );
           for (const a of unknownArgs) {
-            if (Object.prototype.hasOwnProperty.call(dataToUse, a)) delete dataToUse[a];
+            if (Object.prototype.hasOwnProperty.call(dataToUse, a))
+              delete dataToUse[a];
           }
         }
       }
@@ -420,4 +472,10 @@ async function updateOrder(req, res, next) {
   }
 }
 
-export { createOrder, listOrders, updateOrderStatus, updateOrder };
+export {
+  createOrder,
+  listOrders,
+  updateOrderStatus,
+  updateOrder,
+  closeComanda,
+};

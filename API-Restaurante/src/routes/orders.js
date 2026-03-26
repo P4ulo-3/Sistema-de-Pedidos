@@ -4,6 +4,7 @@ import {
   listOrders,
   updateOrderStatus,
   updateOrder,
+  closeComanda,
 } from "../controllers/orderController.js";
 import { authenticate, authorize } from "../middlewares/authMiddleware.js";
 
@@ -18,6 +19,8 @@ router.patch(
   authorize("waiter", "kitchen", "admin"),
   updateOrderStatus,
 );
+// explicit close comanda (mark table free)
+router.patch("/:id/close", authorize("waiter", "admin"), closeComanda);
 // allow waiter/admin to edit pending orders
 router.put("/:id", authorize("waiter", "admin"), updateOrder);
 

@@ -168,10 +168,11 @@ export default function OrderList() {
                     <p className="font-bold text-gray-100">
                       {order.table ? `Mesa ${order.table}` : null}
                       {order.customer && order.table
-                        ? ` · Cliente: ${order.customer}`
+                        ? ` · ${order.customer}`
                         : !order.table && order.customer
-                          ? `Cliente: ${order.customer}`
+                          ? `${order.customer}`
                           : null}
+                      {order.notes ? ` — ${order.notes}` : null}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {order.waiter?.name} ·{" "}
@@ -181,7 +182,7 @@ export default function OrderList() {
                       })}
                     </p>
                     {order.notes && (
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-gray-400 mt-1 hidden">
                         {order.notes}
                       </p>
                     )}
@@ -282,7 +283,68 @@ export default function OrderList() {
                       </button>
                     </div>
                   )}
+                  {/* Edit button for preparing, ready and delivered (waiter/admin) */}
+                  {["PREPARING", "READY", "DELIVERED"].includes(order.status) &&
+                    ["waiter", "admin"].includes(user?.role) && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/orders/${order.id}/edit`)}
+                          className="btn-secondary flex-1 text-xs py-2"
+                        >
+                          Editar
+                        </button>
+                      </div>
+                    )}
                 </div>
+                {/* Extra footer actions for delivered orders */}
+                {order.status === "DELIVERED" && (
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-orange-400">
+                        {order.waiter?.name}
+                      </span>
+                      <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded">
+                        Em aberto
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      {["waiter", "admin"].includes(user?.role) && (
+                        <button
+                          onClick={async () => {
+                            if (
+                              !confirm(
+                                "Fechar comanda e marcar mesa como livre?",
+                              )
+                            )
+                              return;
+                            try {
+                              setUpdatingId(order.id);
+                              await api.patch(`/orders/${order.id}/close`);
+                              toast.success("Comanda fechada e mesa liberada");
+                              fetchOrders();
+                            } catch (e) {
+                              toast.error("Erro ao fechar comanda");
+                            } finally {
+                              setUpdatingId(null);
+                            }
+                          }}
+                          className="btn-primary text-xs py-2"
+                        >
+                          Fechar Comanda
+                        </button>
+                      )}
+                      {["waiter", "admin"].includes(user?.role) && (
+                        <button
+                          onClick={() => navigate(`/orders/${order.id}/edit`)}
+                          className="btn-secondary text-xs py-2"
+                        >
+                          Editar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
