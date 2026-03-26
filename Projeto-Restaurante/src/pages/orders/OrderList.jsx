@@ -288,8 +288,8 @@ export default function OrderList() {
                       </button>
                     </div>
                   )}
-                  {/* Edit button for preparing, ready and delivered (waiter/admin) */}
-                  {"PREPARING", "READY"].includes(order.status) &&
+                  {/* Edit button for preparing and ready (waiter/admin) */}
+                  {["PREPARING", "READY"].includes(order.status) &&
                     ["waiter", "admin"].includes(user?.role) && (
                       <div className="flex gap-2">
                         <button
@@ -318,12 +318,15 @@ export default function OrderList() {
                             Em aberto
                           </div>
                         </div>
-                        {[("waiter", "admin")].length >= 0 && (
+                        {["waiter", "admin"].includes(user?.role) && (
                           <div className="flex-1">
                             <button
                               onClick={() => {
                                 const total = order.items
-                                  ?.reduce((s, i) => s + i.unitPrice * i.quantity, 0)
+                                  ?.reduce(
+                                    (s, i) => s + i.unitPrice * i.quantity,
+                                    0,
+                                  )
                                   .toFixed(2);
                                 setCloseOrderTotal(total || 0);
                                 setCloseOrderId(order.id);
@@ -347,7 +350,8 @@ export default function OrderList() {
                 >
                   <div className="space-y-4">
                     <p className="text-sm text-gray-300">
-                      Valor total do pedido: <strong>R$ {closeOrderTotal}</strong>
+                      Valor total do pedido:{" "}
+                      <strong>R$ {closeOrderTotal}</strong>
                     </p>
                     <div className="flex gap-2">
                       <button
