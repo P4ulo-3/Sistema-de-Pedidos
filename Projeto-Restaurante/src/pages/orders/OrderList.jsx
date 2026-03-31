@@ -47,6 +47,8 @@ export default function OrderList() {
   const [closeOrderTotal, setCloseOrderTotal] = useState(0);
   const [finalizedOrders, setFinalizedOrders] = useState(() => {
     try {
+      if (typeof window === "undefined" || typeof localStorage === "undefined")
+        return [];
       const raw = localStorage.getItem("finalizedOrders") || "[]";
       return JSON.parse(raw);
     } catch {
@@ -82,7 +84,8 @@ export default function OrderList() {
 
       const params = { date: today };
       // don't send unsupported 'FINALIZED' filter to API - it's a frontend-only view
-      if (statusFilter && statusFilter !== "FINALIZED") params.status = statusFilter;
+      if (statusFilter && statusFilter !== "FINALIZED")
+        params.status = statusFilter;
 
       const { data } = await api.get("/orders", { params });
       setOrders(data);
@@ -129,6 +132,11 @@ export default function OrderList() {
     } catch {}
   }
 
+  const sourceOrders =
+    statusFilter === "FINALIZED"
+      ? orders.filter((o) => finalizedOrders.includes(o.id))
+      : orders;
+
   return (
     <div className="space-y-5 max-w-6xl">
       {/* Header */}
@@ -168,28 +176,13 @@ export default function OrderList() {
       {/* Lista de pedidos */}
       {loading ? (
         <LoadingSpinner />
-      ) : orders.length === 0 ? (
+      ) : sourceOrders.length === 0 ? (
         <div className="card text-center text-gray-500 py-12">
           Nenhum pedido encontrado.
         </div>
       ) : (
-        (() => {
-          const sourceOrders =
-            statusFilter === "FINALIZED"
-              ? orders.filter((o) => finalizedOrders.includes(o.id))
-              : orders;
-
-          if (sourceOrders.length === 0) {
-            return (
-              <div className="card text-center text-gray-500 py-12">
-                Nenhum pedido encontrado.
-              </div>
-            );
-          }
-
-          return (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {sourceOrders.map((order) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {sourceOrders.map((order) => {
             const info = statusInfo[order.status];
             const isUpdating = updatingId === order.id;
 
@@ -336,7 +329,7 @@ export default function OrderList() {
                     )}
                 </div>
                 {/* Extra footer actions for delivered orders */}
-                  {order.status === "DELIVERED" && (
+                {order.status === "DELIVERED" && (
                   <div className="mt-2">
                     {finalizedOrders.includes(order.id) ? (
                       <div className="flex gap-2">
@@ -351,7 +344,7 @@ export default function OrderList() {
                             Em aberto
                           </div>
                         </div>
-                        {['waiter','admin'].includes(user?.role) && (
+                        {["waiter", "admin"].includes(user?.role) && (
                           <div className="flex-1">
                             <button
                               onClick={() => {
@@ -371,10 +364,12 @@ export default function OrderList() {
                             </button>
                           </div>
                         )}
-                        {['waiter','admin'].includes(user?.role) && (
+                        {["waiter", "admin"].includes(user?.role) && (
                           <div className="flex-1">
                             <button
-                              onClick={() => navigate(`/orders/${order.id}/edit`)}
+                              onClick={() =>
+                                navigate(`/orders/${order.id}/edit`)
+                              }
                               className="btn-secondary w-full text-xs py-2"
                             >
                               Editar
@@ -409,13 +404,13 @@ export default function OrderList() {
                             setUpdatingId(closeOrderId);
                             await api.patch(`/orders/${closeOrderId}/close`);
                             toast.success("Comanda fechada");
-                                setFinalizedOrders((p) => {
-                                  const next = p.includes(closeOrderId)
-                                    ? p
-                                    : [...p, closeOrderId];
-                                  persistFinalized(next);
-                                  return next;
-                                });
+                            setFinalizedOrders((p) => {
+                              const next = p.includes(closeOrderId)
+                                ? p
+                                : [...p, closeOrderId];
+                              persistFinalized(next);
+                              return next;
+                            });
                             setCloseModalOpen(false);
                             fetchOrders();
                           } catch (e) {
