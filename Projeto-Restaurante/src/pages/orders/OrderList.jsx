@@ -31,6 +31,7 @@ const filters = [
   { value: "PREPARING", label: "Preparando" },
   { value: "READY", label: "Prontos" },
   { value: "DELIVERED", label: "Entregues" },
+  { value: "FINALIZED", label: "Finalizados" },
 ];
 
 export default function OrderList() {
@@ -44,7 +45,14 @@ export default function OrderList() {
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [closeOrderId, setCloseOrderId] = useState(null);
   const [closeOrderTotal, setCloseOrderTotal] = useState(0);
-  const [finalizedOrders, setFinalizedOrders] = useState([]);
+  const [finalizedOrders, setFinalizedOrders] = useState(() => {
+    try {
+      const raw = localStorage.getItem("finalizedOrders") || "[]";
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     fetchOrders();
@@ -73,7 +81,8 @@ export default function OrderList() {
       }
 
       const params = { date: today };
-      if (statusFilter) params.status = statusFilter;
+      // don't send unsupported 'FINALIZED' filter to API - it's a frontend-only view
+      if (statusFilter && statusFilter !== "FINALIZED") params.status = statusFilter;
 
       const { data } = await api.get("/orders", { params });
       setOrders(data);
@@ -111,6 +120,13 @@ export default function OrderList() {
     } finally {
       setUpdatingId(null);
     }
+  }
+
+  // persist finalized orders to localStorage
+  function persistFinalized(list) {
+    try {
+      localStorage.setItem("finalizedOrders", JSON.stringify(list));
+    } catch {}
   }
 
   return (
@@ -157,8 +173,23 @@ export default function OrderList() {
           Nenhum pedido encontrado.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {orders.map((order) => {
+        (() => {
+          const sourceOrders =
+            statusFilter === "FINALIZED"
+              ? orders.filter((o) => finalizedOrders.includes(o.id))
+              : orders;
+
+          if (sourceOrders.length === 0) {
+            return (
+              <div className="card text-center text-gray-500 py-12">
+                Nenhum pedido encontrado.
+              </div>
+            );
+          }
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {sourceOrders.map((order) => {
             const info = statusInfo[order.status];
             const isUpdating = updatingId === order.id;
 
@@ -305,7 +336,7 @@ export default function OrderList() {
                     )}
                 </div>
                 {/* Extra footer actions for delivered orders */}
-                {order.status === "DELIVERED" && (
+                  {order.status === "DELIVERED" && (
                   <div className="mt-2">
                     {finalizedOrders.includes(order.id) ? (
                       <div className="flex gap-2">
@@ -320,7 +351,7 @@ export default function OrderList() {
                             Em aberto
                           </div>
                         </div>
-                        {["waiter", "admin"].includes(user?.role) && (
+                        {['waiter','admin'].includes(user?.role) && (
                           <div className="flex-1">
                             <button
                               onClick={() => {
@@ -337,6 +368,16 @@ export default function OrderList() {
                               className="btn-primary w-full text-xs py-2"
                             >
                               Fechar Comanda
+                            </button>
+                          </div>
+                        )}
+                        {['waiter','admin'].includes(user?.role) && (
+                          <div className="flex-1">
+                            <button
+                              onClick={() => navigate(`/orders/${order.id}/edit`)}
+                              className="btn-secondary w-full text-xs py-2"
+                            >
+                              Editar
                             </button>
                           </div>
                         )}
@@ -368,7 +409,13 @@ export default function OrderList() {
                             setUpdatingId(closeOrderId);
                             await api.patch(`/orders/${closeOrderId}/close`);
                             toast.success("Comanda fechada");
-                            setFinalizedOrders((p) => [...p, closeOrderId]);
+                                setFinalizedOrders((p) => {
+                                  const next = p.includes(closeOrderId)
+                                    ? p
+                                    : [...p, closeOrderId];
+                                  persistFinalized(next);
+                                  return next;
+                                });
                             setCloseModalOpen(false);
                             fetchOrders();
                           } catch (e) {

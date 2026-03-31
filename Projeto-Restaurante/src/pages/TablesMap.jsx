@@ -49,6 +49,15 @@ export default function TablesMap() {
     }
   }
 
+  async function fetchTables() {
+    try {
+      const tRes = await api.get("/tables");
+      setTables(tRes.data);
+    } catch (e) {
+      // ignore
+    }
+  }
+
   function ordersForTable(number) {
     return orders.filter((o) => String(o.table) === String(number));
   }
@@ -65,8 +74,8 @@ export default function TablesMap() {
       setTables((prev) =>
         prev.map((tbl) => (tbl.id === t.id ? { ...tbl, status: "FREE" } : tbl)),
       );
-      // refresh in background
-      fetchAll();
+      // refresh tables in background (do not re-fetch orders, which would re-add the removed order)
+      fetchTables();
     } catch {
       toast.error("Erro ao marcar mesa livre");
     }
