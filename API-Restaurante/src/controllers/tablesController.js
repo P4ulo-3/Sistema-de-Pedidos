@@ -54,7 +54,10 @@ async function updateTable(req, res, next) {
 
     // When marking as RESERVED, save the reservation date; when FREE, clear it
     if (status === "RESERVED") {
-      data.reservationDate = reservationDate ? new Date(reservationDate) : null;
+      // Append Brasilia offset (-03:00) so the stored time matches what the user selected
+      data.reservationDate = reservationDate
+        ? new Date(reservationDate + "-03:00")
+        : null;
     } else if (status === "FREE") {
       data.reservationDate = null;
     }
