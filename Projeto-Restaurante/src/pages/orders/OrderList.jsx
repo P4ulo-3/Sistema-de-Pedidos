@@ -337,7 +337,7 @@ export default function OrderList() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-3 gap-2">
-                        <div className="text-center text-xs bg-green-600 text-white px-2 py-2.5 rounded font-medium">
+                        <div className="flex items-center justify-center text-xs bg-green-600 text-white px-2 py-2.5 rounded font-medium h-full">
                           Em aberto
                         </div>
                         {["waiter", "admin"].includes(user?.role) && (
