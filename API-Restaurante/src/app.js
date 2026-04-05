@@ -7,6 +7,7 @@ import productRoutes from "./routes/products.js";
 import orderRoutes from "./routes/orders.js";
 import tablesRoutes from "./routes/tables.js";
 import usersRoutes from "./routes/users.js";
+import financeRoutes from "./routes/finance.js";
 import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
@@ -43,6 +44,7 @@ app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);
 app.use("/tables", tablesRoutes);
 app.use("/users", usersRoutes);
+app.use("/finance", financeRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });

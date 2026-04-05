@@ -64,4 +64,26 @@ async function resetPassword(req, res, next) {
   }
 }
 
-export { listUsers, createUser, resetPassword };
+async function deleteUser(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing)
+      return res.status(404).json({ message: "Usuário não encontrado" });
+
+    // Prevent deleting yourself
+    if (req.user && req.user.id === id) {
+      return res
+        .status(400)
+        .json({ message: "Não é possível excluir a si mesmo" });
+    }
+
+    await prisma.user.delete({ where: { id } });
+    return res.status(204).end();
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export { listUsers, createUser, resetPassword, deleteUser };

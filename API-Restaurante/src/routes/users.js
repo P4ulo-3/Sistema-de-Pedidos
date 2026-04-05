@@ -3,6 +3,7 @@ import {
   listUsers,
   createUser,
   resetPassword,
+  deleteUser,
 } from "../controllers/userController.js";
 import { authenticate, authorize } from "../middlewares/authMiddleware.js";
 
@@ -16,5 +17,6 @@ router.post(
   authorize("admin"),
   resetPassword,
 );
+router.delete("/:id", authenticate, authorize("admin"), deleteUser);
 
 export default router;

@@ -10,6 +10,7 @@ import {
   Pizza,
   Grid,
   MapPin,
+  DollarSign,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -38,6 +39,12 @@ const navItems = [
     to: "/waiters",
     icon: ClipboardList,
     label: "Atendentes",
+    roles: ["admin"],
+  },
+  {
+    to: "/finance",
+    icon: DollarSign,
+    label: "Financeiro",
     roles: ["admin"],
   },
 ];

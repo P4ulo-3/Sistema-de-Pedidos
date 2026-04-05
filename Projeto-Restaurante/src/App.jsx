@@ -14,6 +14,7 @@ import WaiterNew from "./pages/waiters/WaiterNew.jsx";
 import DailyHistory from "./pages/history/DailyHistory.jsx";
 import TablesAdmin from "./pages/TablesAdmin.jsx";
 import TablesMap from "./pages/TablesMap.jsx";
+import Finance from "./pages/finance/Finance.jsx";
 
 export default function App() {
   const { user } = useAuth();
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/tables" element={<TablesAdmin />} />
           <Route path="/tables/map" element={<TablesMap />} />
           <Route path="/dashboard/history" element={<DailyHistory />} />
+          <Route path="/finance" element={<Finance />} />
         </Route>
       </Route>
 

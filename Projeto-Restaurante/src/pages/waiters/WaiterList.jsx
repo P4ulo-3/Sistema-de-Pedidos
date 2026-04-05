@@ -33,6 +33,7 @@ export default function WaiterList() {
   }, []);
 
   const [resetModal, setResetModal] = useState({ open: false, waiter: null });
+  const [deleteModal, setDeleteModal] = useState({ open: false, waiter: null });
 
   async function fetch() {
     try {
@@ -113,12 +114,24 @@ export default function WaiterList() {
                     </td>
                     <td className="py-2 px-6 whitespace-nowrap">{w.role}</td>
                     <td className="py-2 px-6 whitespace-nowrap">
-                      <button
-                        onClick={() => setResetModal({ open: true, waiter: w })}
-                        className="btn-secondary text-xs"
-                      >
-                        Redefinir senha
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() =>
+                            setResetModal({ open: true, waiter: w })
+                          }
+                          className="btn-secondary text-xs"
+                        >
+                          Redefinir senha
+                        </button>
+                        <button
+                          onClick={() =>
+                            setDeleteModal({ open: true, waiter: w })
+                          }
+                          className="btn-danger text-xs"
+                        >
+                          Excluir
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -173,6 +186,49 @@ export default function WaiterList() {
             className="btn-primary"
           >
             Confirmar
+          </button>
+        </div>
+      </Modal>
+
+      {/* Modal exclusão de atendente */}
+      <Modal
+        title={
+          deleteModal.waiter
+            ? `Excluir atendente - ${deleteModal.waiter.name}`
+            : "Excluir atendente"
+        }
+        isOpen={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, waiter: null })}
+      >
+        <p className="text-sm text-gray-400 mb-4">
+          Deseja realmente excluir este atendente? Esta ação não pode ser
+          desfeita.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setDeleteModal({ open: false, waiter: null })}
+            className="btn-secondary"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={async () => {
+              if (!deleteModal.waiter) return;
+              try {
+                await api.delete(`/users/${deleteModal.waiter.id}`);
+                toast.success("Atendente excluído");
+                fetch();
+              } catch (err) {
+                toast.error(
+                  err?.response?.data?.message ?? "Erro ao excluir atendente",
+                );
+              } finally {
+                setDeleteModal({ open: false, waiter: null });
+              }
+            }}
+            className="btn-danger"
+          >
+            Excluir
           </button>
         </div>
       </Modal>
