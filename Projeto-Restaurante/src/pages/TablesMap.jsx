@@ -137,6 +137,19 @@ export default function TablesMap() {
                       <p className="text-sm">
                         {t.status === "RESERVED" ? "Reservado" : "Ocupado"}
                       </p>
+                      {t.status === "RESERVED" && t.reservationDate && (
+                        <p className="text-xs text-yellow-300 mt-1">
+                          📅{" "}
+                          {new Date(t.reservationDate).toLocaleDateString(
+                            "pt-BR",
+                          )}{" "}
+                          às{" "}
+                          {new Date(t.reservationDate).toLocaleTimeString(
+                            "pt-BR",
+                            { hour: "2-digit", minute: "2-digit" },
+                          )}
+                        </p>
+                      )}
                     </div>
                   );
                 }

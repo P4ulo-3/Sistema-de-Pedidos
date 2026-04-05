@@ -46,11 +46,18 @@ async function updateTable(req, res, next) {
       });
     }
     const { id } = req.params;
-    const { status, number } = req.body;
+    const { status, number, reservationDate } = req.body;
     const data = {};
     if (status) data.status = status;
     if (number != null && !Number.isNaN(Number(number)))
       data.number = Number(number);
+
+    // When marking as RESERVED, save the reservation date; when FREE, clear it
+    if (status === "RESERVED") {
+      data.reservationDate = reservationDate ? new Date(reservationDate) : null;
+    } else if (status === "FREE") {
+      data.reservationDate = null;
+    }
 
     // find existing table to access its number (used to clear linked orders)
     const existing = await prisma.table.findUnique({ where: { id } });

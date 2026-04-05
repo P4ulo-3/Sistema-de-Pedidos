@@ -332,49 +332,39 @@ export default function OrderList() {
                 {order.status === "DELIVERED" && (
                   <div className="mt-2">
                     {finalizedOrders.includes(order.id) ? (
-                      <div className="flex gap-2">
-                        <div className="flex-1 text-center text-xs bg-red-600 text-white px-2 py-2 rounded">
-                          Pedido finalizado
-                        </div>
+                      <div className="text-center text-xs bg-red-600/90 text-white px-3 py-2.5 rounded font-medium">
+                        Pedido finalizado
                       </div>
                     ) : (
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-center text-xs bg-green-600 text-white px-2 py-2 rounded">
-                            Em aberto
-                          </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-center text-xs bg-green-600 text-white px-2 py-2.5 rounded font-medium">
+                          Em aberto
                         </div>
                         {["waiter", "admin"].includes(user?.role) && (
-                          <div className="flex-1">
-                            <button
-                              onClick={() => {
-                                const total = order.items
-                                  ?.reduce(
-                                    (s, i) => s + i.unitPrice * i.quantity,
-                                    0,
-                                  )
-                                  .toFixed(2);
-                                setCloseOrderTotal(total || 0);
-                                setCloseOrderId(order.id);
-                                setCloseModalOpen(true);
-                              }}
-                              className="btn-primary w-full text-xs py-2"
-                            >
-                              Fechar Comanda
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => {
+                              const total = order.items
+                                ?.reduce(
+                                  (s, i) => s + i.unitPrice * i.quantity,
+                                  0,
+                                )
+                                .toFixed(2);
+                              setCloseOrderTotal(total || 0);
+                              setCloseOrderId(order.id);
+                              setCloseModalOpen(true);
+                            }}
+                            className="btn-primary text-xs py-2.5 justify-center"
+                          >
+                            Fechar Comanda
+                          </button>
                         )}
                         {["waiter", "admin"].includes(user?.role) && (
-                          <div className="flex-1">
-                            <button
-                              onClick={() =>
-                                navigate(`/orders/${order.id}/edit`)
-                              }
-                              className="btn-secondary w-full text-xs py-2"
-                            >
-                              Editar
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => navigate(`/orders/${order.id}/edit`)}
+                            className="btn-secondary text-xs py-2.5 justify-center"
+                          >
+                            Editar
+                          </button>
                         )}
                       </div>
                     )}

@@ -85,9 +85,10 @@ model OrderItem {
 }
 
 model Table {
-  id        String   @id @default(uuid())
-  number    Int      @unique
-  status    TableStatus @default(FREE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String       @id @default(uuid())
+  number          Int          @unique
+  status          TableStatus  @default(FREE)
+  reservationDate DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 }
